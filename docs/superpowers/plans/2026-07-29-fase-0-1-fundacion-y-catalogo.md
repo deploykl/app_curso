@@ -1293,7 +1293,8 @@ export function formatLima(
   return new Intl.DateTimeFormat("es-PE", { ...opts, timeZone: LIMA }).format(date);
 }
 
-const GRACE_MINUTES = 15;
+const JOIN_OPENS_MINUTES = 10;
+const JOIN_DEADZONE_MINUTES = 1;
 
 export type SessionState = "upcoming" | "live" | "past";
 
@@ -1302,15 +1303,18 @@ export function sessionState(
   durationMinutes: number,
   now: Date = new Date()
 ): SessionState {
-  const opensAt = startsAt.getTime() - GRACE_MINUTES * 60_000;
-  const endsAt = startsAt.getTime() + durationMinutes * 60_000;
-  if (now.getTime() < opensAt) return "upcoming";
-  if (now.getTime() <= endsAt) return "live";
+  const joinOpensAt = startsAt.getTime() - JOIN_OPENS_MINUTES * 60_000;
+  const joinClosesAt = startsAt.getTime() - JOIN_DEADZONE_MINUTES * 60_000;
+  const sessionEndsAt = startsAt.getTime() + durationMinutes * 60_000;
+  const nowTime = now.getTime();
+  if (nowTime >= joinOpensAt && nowTime < joinClosesAt) return "live";
+  if (nowTime < startsAt.getTime()) return "upcoming";
+  if (nowTime <= sessionEndsAt) return "live";
   return "past";
 }
 ```
 
-Los 15 minutos de gracia existen para que el alumno pueda entrar al Zoom un poco antes. Sin ellos, el botón aparece justo a la hora y la gente cree que está roto.
+> **Nota de desviación (Task 4, 2026-07-30):** el texto original de este plan especificaba `GRACE_MINUTES = 15` con una única ventana de gracia, pero esa fórmula es matemáticamente incompatible con el propio test del plan (a 1 minuto de empezar debía dar `"upcoming"`, imposible con 15 min de gracia simple). Decisión del humano: aceptar el diseño alternativo del implementador — ventana de apertura a los 10 minutos antes del inicio, con 1 minuto de "zona muerta" justo antes donde no se puede entrar (evita el alumno entrando y saliendo confundido justo al filo). Los 5 casos de test del plan quedan satisfechos con este diseño.
 
 `src/lib/slug.ts`:
 
