@@ -55,7 +55,7 @@ Perú. Precios en **soles (PEN)**. Zona horaria de visualización: `America/Lima
 
 | Capa | Elección | Notas |
 |---|---|---|
-| Framework | **Next.js 15** App Router + React 19 + TypeScript | Runtime **Node**, no Cloudflare Workers |
+| Framework | **Next.js 16** App Router + React 19 + TypeScript | Runtime **Node**, no Cloudflare Workers |
 | Base de datos | **Postgres** | Docker local en desarrollo; en el mismo VPS en producción. Neon free opcional para demo |
 | ORM | **Drizzle** | Migraciones versionadas en el repo |
 | Auth | **Better Auth** | Email+password, verificación, reset, Google OAuth, roles |

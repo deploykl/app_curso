@@ -4,9 +4,11 @@
 
 **Goal:** Dejar en pie una app Next.js con autenticación por roles, el esquema completo de base de datos, y el catálogo funcionando de punta a punta: un instructor crea un curso con sesiones de Zoom y materiales, y un visitante lo ve publicado.
 
-**Architecture:** Una sola app Next.js 15 (App Router, runtime Node) con cuatro route groups separados por rol. Lógica de negocio en `src/modules/<dominio>/service.ts`, sin importar nada de `next/*`, para poder testearla con Vitest sin servidor. Postgres + Drizzle con migraciones versionadas. Archivos en Cloudflare R2 mediante URLs presignadas.
+**Architecture:** Una sola app Next.js 16 (App Router, runtime Node) con cuatro route groups separados por rol. Lógica de negocio en `src/modules/<dominio>/service.ts`, sin importar nada de `next/*`, para poder testearla con Vitest sin servidor. Postgres + Drizzle con migraciones versionadas. Archivos en Cloudflare R2 mediante URLs presignadas.
 
-**Tech Stack:** Next.js 15 · React 19 · TypeScript · Drizzle ORM · Postgres 16 · Better Auth · Tailwind v4 · shadcn/ui · nodemailer (MailHog en dev, Brevo SMTP en prod) · Cloudflare R2 (S3 SDK) · Turnstile · Vitest · Playwright · Docker Compose · pnpm
+**Tech Stack:** Next.js 16 · React 19 · TypeScript · Drizzle ORM · Postgres 16 · Better Auth · Tailwind v4 · shadcn/ui · nodemailer (MailHog en dev, Brevo SMTP en prod) · Cloudflare R2 (S3 SDK) · Turnstile · Vitest · Playwright · Docker Compose · pnpm
+
+> **Nota de desviación (Task 1, 2026-07-29):** el scaffold usó `create-next-app@latest`, que instaló Next.js 16.2.12 en vez de la v15 originalmente especificada. Decisión del humano: aceptar Next 16 y actualizar esta constraint retroactivamente (no revertir). React 19 y los patrones App Router del resto del plan son compatibles.
 
 **Spec:** `docs/superpowers/specs/2026-07-29-plataforma-cursos-online-design.md`
 
