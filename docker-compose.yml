@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: appcurso
+      POSTGRES_PASSWORD: appcurso
+      POSTGRES_DB: appcurso
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appcurso"]
+      interval: 5s
+      retries: 10
+
+  db_test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: appcurso
+      POSTGRES_PASSWORD: appcurso
+      POSTGRES_DB: appcurso_test
+    ports: ["5433:5432"]
+    tmpfs: ["/var/lib/postgresql/data"]
+
+  mailhog:
+    image: mailhog/mailhog
+    ports: ["1025:1025", "8025:8025"]
+
+volumes:
+  pgdata:
