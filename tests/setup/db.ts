@@ -1,6 +1,8 @@
 import { execSync } from "node:child_process";
+import { config } from "dotenv";
 
 export default function setup() {
+  config({ path: ".env.local" });
   process.env.TEST_DATABASE_URL ??=
     "postgres://appcurso:appcurso@localhost:5433/appcurso_test";
   try {
