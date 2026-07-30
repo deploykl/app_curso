@@ -139,7 +139,7 @@ interface VideoProvider {
 
 ## 5. Modelo de datos
 
-28 tablas. Todo `timestamptz`. Dinero siempre en **céntimos enteros** (`integer`), nunca decimales.
+**31 tablas** (4 de ellas gestionadas por Better Auth). Todo `timestamptz`. Dinero siempre en **céntimos enteros** (`integer`), nunca decimales.
 
 ### Auth (gestionadas por Better Auth)
 
@@ -158,6 +158,9 @@ instructor_profiles   user_id PK/FK, display_name, headline, bio_md, avatar_url,
                       bank_holder, bank_name, bank_cci,
                       status (pending|approved), created_at, updated_at
 ```
+
+**Precedencia de la comisión aplicada a una venta:**
+`courses.commission_rate_override` si no es NULL, en caso contrario `instructor_profiles.commission_rate`. El valor resuelto se copia a `order_items.commission_rate` al vender y nunca se vuelve a consultar.
 
 ### Catálogo
 
@@ -194,13 +197,15 @@ session_materials     id, class_session_id, title,
 ### Inscripción y progreso
 
 ```
-enrollments           id, user_id, course_id, order_id,
+enrollments           id, user_id, course_id, order_id NULLABLE,
                       status (active|refunded|revoked), enrolled_at, completed_at
                       UNIQUE(user_id, course_id)
 
 session_attendance    id, enrollment_id, class_session_id, marked_at
                       UNIQUE(enrollment_id, class_session_id)
 ```
+
+`enrollments.order_id` es nullable para permitir **inscripciones manuales sin venta** (cortesías, alumnos de prueba, migraciones). Una inscripción sin orden no genera `order_item` ni `instructor_earnings`.
 
 El progreso es **auto-reportado** por el alumno ("asistí / vi la grabación"). No bloquea nada; alimenta la barra de avance. No se puede verificar asistencia real a Zoom sin integrar su API, que está fuera del MVP.
 
@@ -263,7 +268,9 @@ payment_proofs        id, order_id, method (yape|plin|transferencia),
                       declared_amount_cents, transferred_at, proof_file_key,
                       status (pending|approved|rejected),
                       reviewed_by, reviewed_at, rejection_reason, submitted_at
-                      UNIQUE(method, operation_number) WHERE status <> 'rejected'
+                      -- índice único PARCIAL de Postgres:
+                      -- CREATE UNIQUE INDEX ... ON payment_proofs (method, operation_number)
+                      --   WHERE status <> 'rejected'
 
 payment_events        id, provider, provider_event_id UQ, event_type,
                       payload JSONB, order_id, processed_at, error
@@ -332,7 +339,8 @@ crearOrden(courseId, couponCode?)
 
 /pago/[orderNumber]
   ├─ muestra monto exacto, QR, número Yape/Plin y CCI desde payment_destinations
-  ├─ si total > umbral configurable → destaca transferencia (límite diario de Yape)
+  ├─ si total_cents > YAPE_MAX_CENTS (variable de entorno)
+  │     → destaca transferencia y atenúa Yape/Plin (límite diario de Yape)
   └─ alumno sube captura + declara nombre, DNI, nº operación, monto, fecha
 
 payment_proofs.status = pending → email de aviso al admin
@@ -447,7 +455,8 @@ emitirCertificado(enrollmentId)   -- dentro de la transacción del examen
   ├─ INSERT ... ON CONFLICT (enrollment_id) DO NOTHING   ← idempotente
   ├─ code = 8 caracteres legibles, único
   └─ snapshots: student_name, course_title, instructor_name,
-                academy_name (= ACADEMIA_NAME), hours, final_score
+                academy_name (= ACADEMIA_NAME), final_score,
+                hours (= courses.estimated_hours al momento de emitir)
      pdf_key queda NULL
 
 GET /certificados/[code]/pdf
@@ -548,7 +557,7 @@ registro → verificación de email → ver curso → crear orden → subir comp
 
 | # | Fase | Entrega | Días |
 |---|---|---|---|
-| 0 | Fundación | Docker Compose (Next + Postgres + MailHog), Drizzle con las 28 tablas, Better Auth con roles, layout, guards, seed. Verificaciones de la sección 3 | 1–2 |
+| 0 | Fundación | Docker Compose (Next + Postgres + MailHog), Drizzle con las 31 tablas, Better Auth con roles, layout, guards, seed. Verificaciones de la sección 3 | 1–2 |
 | 1 | Catálogo e instructor | CRUD de cursos, class_sessions con fecha y Zoom, materiales a R2, categorías, página pública de curso, `/cursos` con filtros | 3–4 |
 | 2 | Pago manual | Orden, pantalla de pago con QR, subida de comprobante, cola en `/admin/pagos`, `aprobarPago` transaccional, earnings, emails | 3–4 |
 | 3 | Aula del alumno | `/mi-aprendizaje`, agenda con estados, acceso a Zoom y grabaciones, materiales, progreso, cron de recordatorios | 3–4 |
