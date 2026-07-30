@@ -19,7 +19,7 @@ describe("schema de autenticación", () => {
     expect(await tableExists("verification")).toBe(true);
   });
 
-  it("no existe una tabla llamada class_sessions todavía", async () => {
-    expect(await tableExists("class_sessions")).toBe(false);
+  it("creó la tabla class_sessions en la Task 3", async () => {
+    expect(await tableExists("class_sessions")).toBe(true);
   });
 });
