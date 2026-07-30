@@ -3,6 +3,8 @@ import { config } from "dotenv";
 
 export default function setup() {
   config({ path: ".env.local" });
+  // Override SMTP settings to use MailHog for hermetic tests (not live Gmail)
+  config({ path: ".env.test", override: true });
   process.env.TEST_DATABASE_URL ??=
     "postgres://appcurso:appcurso@localhost:5433/appcurso_test";
   try {
