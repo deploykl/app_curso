@@ -24,7 +24,7 @@ export async function crearOrden(courseId: string, couponCode?: string) {
     throw new Error("Ya estás inscrito en este curso.");
   }
 
-  let coupon: Awaited<ReturnType<typeof findCouponByCode>> = null;
+  let coupon: Awaited<ReturnType<typeof findCouponByCode>> | null = null;
   if (couponCode) {
     coupon = await findCouponByCode(couponCode);
     if (!coupon) throw new Error("El cupón no existe.");
