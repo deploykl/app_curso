@@ -1,5 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Base de datos
+
+Este proyecto usa **Postgres nativo** (no Docker) para desarrollo y tests. Docker solo se usa para MailHog.
+
+```bash
+# una vez, con un superusuario de Postgres:
+createuser -U postgres -P appcurso   # password: appcurso
+createdb -U postgres -O appcurso appcurso
+createdb -U postgres -O appcurso appcurso_test
+
+docker compose up -d   # levanta MailHog (http://localhost:8025)
+cp .env.example .env.local
+pnpm db:migrate
+pnpm db:seed
+```
+
 ## Getting Started
 
 First, run the development server:

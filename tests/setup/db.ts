@@ -6,7 +6,7 @@ export default function setup() {
   // Override SMTP settings to use MailHog for hermetic tests (not live Gmail)
   config({ path: ".env.test", override: true });
   process.env.TEST_DATABASE_URL ??=
-    "postgres://appcurso:appcurso@localhost:5433/appcurso_test";
+    "postgres://appcurso:appcurso@localhost:5432/appcurso_test";
   try {
     execSync("pnpm drizzle-kit migrate", {
       stdio: "inherit",

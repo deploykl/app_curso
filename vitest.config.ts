@@ -8,7 +8,7 @@ export default defineConfig({
     include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
     globalSetup: ["tests/setup/db.ts"],
     pool: "forks",
-    singleFork: true,
+    fileParallelism: false,
   },
   resolve: { alias: { "@": path.resolve(__dirname, "src") } },
 });
