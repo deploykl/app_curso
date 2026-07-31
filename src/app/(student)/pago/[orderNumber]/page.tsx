@@ -29,11 +29,7 @@ export default async function PagoPage({ params }: { params: Promise<{ orderNumb
         <p className="mt-1 text-3xl font-semibold">{formatPEN(order.totalCents)}</p>
       </div>
 
-      {order.status === "expired" ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-          Esta orden venció. Vuelve al curso para generar una nueva.
-        </p>
-      ) : (
+      {order.status === "pending" ? (
         <>
           {highlightTransfer && (
             <p className="rounded-md border border-warning/30 bg-warning/10 p-4 text-sm">
@@ -60,6 +56,14 @@ export default async function PagoPage({ params }: { params: Promise<{ orderNumb
 
           <PaymentProofForm orderId={order.id} orderNumber={order.orderNumber} />
         </>
+      ) : order.status === "expired" ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+          Esta orden venció. Vuelve al curso para generar una nueva.
+        </p>
+      ) : (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+          Esta orden ya no admite pago.
+        </p>
       )}
     </div>
   );
