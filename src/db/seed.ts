@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { user, instructorProfiles, categories, courses, classSessions } from "@/db/schema";
+import { user, instructorProfiles, categories, courses, classSessions, paymentDestinations } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 const CATEGORIAS = [
@@ -66,6 +66,27 @@ async function main() {
         isFreePreview: i === 0,
       });
     }
+  }
+
+  const existingDestinations = await db.select().from(paymentDestinations).limit(1);
+  if (existingDestinations.length === 0) {
+    await db.insert(paymentDestinations).values([
+      {
+        method: "yape", holderName: "Academia Demo", identifier: "987654321",
+        instructionsMd: "Escanea el QR o yapea al número indicado.",
+        isActive: true, orderIndex: 1,
+      },
+      {
+        method: "plin", holderName: "Academia Demo", identifier: "987654321",
+        instructionsMd: "Plinea al número indicado y guarda tu comprobante.",
+        isActive: true, orderIndex: 2,
+      },
+      {
+        method: "transferencia", holderName: "Academia Demo SAC", identifier: "00219800123456789012",
+        bankName: "BCP", instructionsMd: "Transfiere por CCI y anota el número de operación.",
+        isActive: true, orderIndex: 3,
+      },
+    ]);
   }
 
   console.log("Seed listo. admin@test.pe / prof@test.pe / alumno@test.pe — contraseñas: <rol>12345");
