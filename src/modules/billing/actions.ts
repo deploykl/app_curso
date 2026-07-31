@@ -1,10 +1,12 @@
 "use server";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { db } from "@/db";
-import { orders, orderItems, courses, instructorProfiles } from "@/db/schema";
+import { orders, orderItems, courses, instructorProfiles, paymentProofs } from "@/db/schema";
 import { requireUser } from "@/modules/auth/session";
 import { isEnrolled } from "@/modules/auth/guards";
-import { resolveCommissionRate } from "@/modules/catalog/service";
+import { resolveCommissionRate, limaLocalToUtc } from "@/modules/catalog/service";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS } from "./service";
 import { nextOrderNumber, findCouponByCode } from "./queries";
 
@@ -71,4 +73,39 @@ export async function crearOrden(courseId: string, couponCode?: string) {
   });
 
   return { orderNumber };
+}
+
+const proofSchema = z.object({
+  method: z.enum(["yape", "plin", "transferencia"]),
+  payerFullName: z.string().trim().min(3).max(160),
+  payerDni: z.string().trim().min(6).max(20),
+  operationNumber: z.string().trim().min(1).max(60),
+  declaredAmountCents: z.coerce.number().int().positive(),
+  transferredAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+  fileKey: z.string().trim().min(1),
+  turnstileToken: z.string(),
+});
+
+export async function submitPaymentProof(orderId: string, raw: unknown) {
+  const u = await requireUser();
+  const input = proofSchema.parse(raw);
+
+  const ok = await verifyTurnstile(input.turnstileToken);
+  if (!ok) throw new Error("Verificación de seguridad inválida.");
+
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!order || order.userId !== u.id) throw new Error("Orden no encontrada.");
+  if (order.status !== "pending") throw new Error("Esta orden ya no admite comprobantes.");
+
+  await db.insert(paymentProofs).values({
+    orderId,
+    method: input.method,
+    payerFullName: input.payerFullName,
+    payerDni: input.payerDni,
+    operationNumber: input.operationNumber,
+    declaredAmountCents: input.declaredAmountCents,
+    transferredAt: limaLocalToUtc(input.transferredAtLocal),
+    proofFileKey: input.fileKey,
+    status: "pending",
+  });
 }
