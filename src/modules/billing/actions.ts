@@ -1,13 +1,14 @@
 "use server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { orders, orderItems, courses, instructorProfiles, paymentProofs } from "@/db/schema";
-import { requireUser } from "@/modules/auth/session";
+import { orders, orderItems, courses, instructorProfiles, paymentProofs, enrollments, instructorEarnings } from "@/db/schema";
+import { requireUser, assertRole } from "@/modules/auth/session";
 import { isEnrolled } from "@/modules/auth/guards";
 import { resolveCommissionRate, limaLocalToUtc } from "@/modules/catalog/service";
 import { verifyTurnstile } from "@/lib/turnstile";
-import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS } from "./service";
+import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS, EARNING_AVAILABLE_DAYS } from "./service";
 import { nextOrderNumber, findCouponByCode } from "./queries";
 
 export async function crearOrden(courseId: string, couponCode?: string) {
@@ -108,4 +109,71 @@ export async function submitPaymentProof(orderId: string, raw: unknown) {
     proofFileKey: input.fileKey,
     status: "pending",
   });
+}
+
+export async function aprobarPago(orderId: string) {
+  const admin = await assertRole(["admin"]);
+
+  await db.transaction(async (tx) => {
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    if (!order) throw new Error("Orden no encontrada.");
+    if (order.status === "paid") return; // idempotente: ya se aprobó antes
+
+    const [proof] = await tx.select().from(paymentProofs)
+      .where(and(eq(paymentProofs.orderId, orderId), eq(paymentProofs.status, "pending")))
+      .limit(1);
+    if (!proof) throw new Error("No hay un comprobante pendiente para esta orden.");
+
+    const [item] = await tx.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
+    if (!item) throw new Error("La orden no tiene curso asociado.");
+
+    const now = new Date();
+
+    await tx.update(paymentProofs)
+      .set({ status: "approved", reviewedBy: admin.id, reviewedAt: now })
+      .where(eq(paymentProofs.id, proof.id));
+
+    await tx.update(orders).set({ status: "paid", paidAt: now }).where(eq(orders.id, orderId));
+
+    await tx.insert(enrollments)
+      .values({ userId: order.userId, courseId: item.courseId, orderId: order.id, status: "active" })
+      .onConflictDoNothing({ target: [enrollments.userId, enrollments.courseId] });
+
+    const { commissionCents, netCents } = computeCommission(item.unitPriceCents, item.commissionRate);
+    const availableAt = new Date(now.getTime() + EARNING_AVAILABLE_DAYS * 24 * 60 * 60 * 1000);
+
+    await tx.insert(instructorEarnings).values({
+      orderItemId: item.id,
+      instructorId: item.instructorId,
+      grossCents: item.unitPriceCents,
+      commissionCents,
+      netCents,
+      status: "pending",
+      availableAt,
+    }).onConflictDoNothing({ target: instructorEarnings.orderItemId });
+
+    // El cupón, si lo hubo, ya quedó registrado en discountCents; sin una
+    // referencia directa orders -> coupon en el esquema, la redención
+    // detallada (coupon_redemptions) se registra en crearOrden cuando
+    // aplica, no aquí (Fase 6 agregará la UI de cupones que ejercitará esto).
+  });
+
+  revalidatePath("/admin/pagos");
+}
+
+export async function rechazarPago(orderId: string, reason: string) {
+  const u = await assertRole(["admin"]);
+  const [proof] = await db.select().from(paymentProofs)
+    .where(and(eq(paymentProofs.orderId, orderId), eq(paymentProofs.status, "pending")))
+    .limit(1);
+  if (!proof) throw new Error("No hay un comprobante pendiente para esta orden.");
+
+  await db.update(paymentProofs).set({
+    status: "rejected",
+    reviewedBy: u.id,
+    reviewedAt: new Date(),
+    rejectionReason: reason,
+  }).where(eq(paymentProofs.id, proof.id));
+
+  revalidatePath("/admin/pagos");
 }
