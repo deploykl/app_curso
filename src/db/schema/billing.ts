@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, integer, timestamp, boolean, numeric, uuid, jsonb, unique, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, integer, timestamp, boolean, numeric, uuid, jsonb, unique, uniqueIndex, index, pgSequence } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "./auth";
 import { courses } from "./catalog";
@@ -102,3 +102,9 @@ export const couponRedemptions = pgTable("coupon_redemptions", {
   orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull().references(() => user.id),
 }, (t) => [unique("coupon_redemption_uq").on(t.couponId, t.orderId)]);
+
+export const orderNumberSeq = pgSequence("order_number_seq", {
+  startWith: 1,
+  increment: 1,
+  minValue: 1,
+});
