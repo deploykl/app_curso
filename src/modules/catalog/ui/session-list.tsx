@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { formatLima } from "@/lib/datetime";
 import { deleteClassSession, reorderClassSessions, setRecordingUrl } from "@/modules/catalog/session-actions";
+import { MaterialManager, type MaterialRow } from "@/modules/materials/ui/material-manager";
 import { SessionForm } from "./session-form";
 
 export interface SessionRow {
@@ -26,6 +27,7 @@ export interface SessionRow {
   zoomUrl: string | null;
   recordingUrl: string | null;
   isFreePreview: boolean;
+  materials: MaterialRow[];
 }
 
 function toLocalInputValue(date: Date): string {
@@ -73,6 +75,7 @@ function RecordingCell({ sessionId, recordingUrl }: { sessionId: string; recordi
 export function SessionList({ courseId, sessions }: { courseId: string; sessions: SessionRow[] }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [materialsId, setMaterialsId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function move(index: number, direction: -1 | 1) {
@@ -144,12 +147,22 @@ export function SessionList({ courseId, sessions }: { courseId: string; sessions
                       <Button type="button" size="sm" variant="outline" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
                         Editar
                       </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => setMaterialsId(materialsId === s.id ? null : s.id)}>
+                        Materiales ({s.materials.length})
+                      </Button>
                       <Button type="button" size="sm" variant="destructive" disabled={isPending} onClick={() => remove(s.id)}>
                         Borrar
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
+                {materialsId === s.id && (
+                  <TableRow>
+                    <TableCell colSpan={7}>
+                      <MaterialManager sessionId={s.id} materials={s.materials} />
+                    </TableCell>
+                  </TableRow>
+                )}
                 {editingId === s.id && (
                   <TableRow>
                     <TableCell colSpan={7}>

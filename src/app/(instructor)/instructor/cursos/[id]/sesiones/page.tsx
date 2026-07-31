@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { classSessions } from "@/db/schema";
+import { classSessions, sessionMaterials } from "@/db/schema";
 import { requireUser } from "@/modules/auth/session";
 import { canManageCourse, type Role } from "@/modules/auth/guards";
 import { getCourseById } from "@/modules/catalog/queries";
@@ -18,11 +18,23 @@ export default async function SesionesPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  const sessions = await db
+  const rawSessions = await db
     .select()
     .from(classSessions)
     .where(eq(classSessions.courseId, course.id))
     .orderBy(asc(classSessions.orderIndex));
+
+  const sessionIds = rawSessions.map((s) => s.id);
+  const materials = sessionIds.length
+    ? await db.select().from(sessionMaterials).where(inArray(sessionMaterials.classSessionId, sessionIds))
+    : [];
+
+  const sessions = rawSessions.map((s) => ({
+    ...s,
+    materials: materials
+      .filter((m) => m.classSessionId === s.id)
+      .map((m) => ({ id: m.id, title: m.title, fileKey: m.fileKey, externalUrl: m.externalUrl })),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
