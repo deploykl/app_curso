@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { user, courses, orders, orderItems, paymentProofs } from "@/db/schema";
+import { user, courses, orders, orderItems, paymentProofs, enrollments } from "@/db/schema";
 
 let studentId: string;
 let orderId: string;
@@ -17,6 +17,7 @@ const { submitPaymentProof } = await import("@/modules/billing/actions");
 
 beforeEach(async () => {
   await db.delete(paymentProofs);
+  await db.delete(enrollments);
   await db.delete(orderItems);
   await db.delete(orders);
   await db.delete(courses);
@@ -63,6 +64,7 @@ const validInput = {
 
 afterAll(async () => {
   await db.delete(paymentProofs);
+  await db.delete(enrollments);
   await db.delete(orderItems);
   await db.delete(orders);
   await db.delete(courses);
