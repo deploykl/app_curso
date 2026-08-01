@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { user, courses, orders, orderItems, paymentProofs } from "@/db/schema";
+import { user, courses, enrollments, orders, orderItems, paymentProofs } from "@/db/schema";
 import { expireStaleOrders } from "@/modules/billing/jobs";
 
 let studentId: string;
@@ -11,6 +11,10 @@ beforeEach(async () => {
   await db.delete(paymentProofs);
   await db.delete(orderItems);
   await db.delete(orders);
+  // enrollments debe borrarse antes que courses: si otro suite (p.ej.
+  // session-reminders.test.ts) deja una fila colgando por FK, el
+  // `db.delete(courses)` de abajo revienta.
+  await db.delete(enrollments);
   await db.delete(courses);
   await db.delete(user);
 
@@ -40,6 +44,7 @@ afterEach(async () => {
   await db.delete(paymentProofs);
   await db.delete(orderItems);
   await db.delete(orders);
+  await db.delete(enrollments);
   await db.delete(courses);
   await db.delete(user);
 });
