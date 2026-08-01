@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { certificates } from "@/db/schema";
 
@@ -50,4 +50,28 @@ export async function getCertificadoPublico(code: string): Promise<CertificadoPu
     finalScore: Number(row.finalScore),
     issuedAt: row.issuedAt,
   };
+}
+
+export interface CertificadoAdminRow {
+  id: string;
+  code: string;
+  studentName: string;
+  courseTitle: string;
+  issuedAt: Date;
+  revokedAt: Date | null;
+}
+
+/** Todos los certificados emitidos, para el panel del admin. */
+export async function listarCertificados(): Promise<CertificadoAdminRow[]> {
+  return db
+    .select({
+      id: certificates.id,
+      code: certificates.code,
+      studentName: certificates.studentName,
+      courseTitle: certificates.courseTitle,
+      issuedAt: certificates.issuedAt,
+      revokedAt: certificates.revokedAt,
+    })
+    .from(certificates)
+    .orderBy(desc(certificates.issuedAt));
 }
