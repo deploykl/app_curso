@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { certificates } from "@/db/schema";
+import { certificates, enrollments } from "@/db/schema";
 
 export type CertificadoPublico =
   | {
@@ -74,4 +74,25 @@ export async function listarCertificados(): Promise<CertificadoAdminRow[]> {
     })
     .from(certificates)
     .orderBy(desc(certificates.issuedAt));
+}
+
+export interface MiCertificado {
+  code: string;
+  courseTitle: string;
+  issuedAt: Date;
+}
+
+/** Certificados del alumno, para /certificados. */
+export async function getMisCertificados(userId: string): Promise<MiCertificado[]> {
+  const rows = await db
+    .select({
+      code: certificates.code,
+      courseTitle: certificates.courseTitle,
+      issuedAt: certificates.issuedAt,
+    })
+    .from(certificates)
+    .innerJoin(enrollments, eq(enrollments.id, certificates.enrollmentId))
+    .where(and(eq(enrollments.userId, userId), isNull(certificates.revokedAt)))
+    .orderBy(desc(certificates.issuedAt));
+  return rows;
 }
