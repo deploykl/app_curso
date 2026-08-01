@@ -3,7 +3,47 @@ import { login, ALUMNO } from "./fixtures";
 
 const ADMIN = { email: "admin@test.pe", password: "admin12345" };
 
+// Playwright ejecuta este archivo con Node "puro" (no pasa por `next dev`,
+// que es lo único que carga .env.local automáticamente en el resto del
+// proyecto), así que sin este paso `@/db` se conecta con una URL vacía.
+// Se cargan las variables y se importa la app de base de datos de forma
+// perezosa (dynamic import) para garantizar que el .env ya esté poblado
+// antes de que `src/db/index.ts` lea `process.env.DATABASE_URL`.
+async function getDbHandles() {
+  const dotenv = await import("dotenv");
+  dotenv.config({ path: ".env.local" });
+  const [{ db }, schema, { eq }] = await Promise.all([
+    import("@/db"),
+    import("@/db/schema"),
+    import("drizzle-orm"),
+  ]);
+  // El transform de dynamic-import de Playwright envuelve el módulo CJS
+  // compilado en un objeto { default, ... } en vez de exponer los exports
+  // nombrados directamente; hay que desenvolverlo.
+  const schemaExports = (schema as Record<string, unknown>).default ?? schema;
+  return { db, eq, ...(schemaExports as typeof schema) };
+}
+
 test.describe("compra con pago manual", () => {
+  let createdOrderId: string | undefined;
+
+  test.afterAll(async () => {
+    // El test aprueba una orden real (inscribe al alumno y genera earnings de
+    // verdad), así que hay que revertirlo para que una corrida posterior de
+    // `pnpm test:e2e` sobre la misma BD no falle con "Ya estás inscrito en
+    // este curso." Orden seguro para FKs: earnings/enrollment -> proofs ->
+    // order_items -> orders. Mismo estilo de limpieza que
+    // tests/integration/order-expiry.test.ts y billing-proof.test.ts.
+    if (!createdOrderId) return;
+    const { db, eq, orders, orderItems, paymentProofs, enrollments, instructorEarnings } = await getDbHandles();
+    const [item] = await db.select({ id: orderItems.id }).from(orderItems).where(eq(orderItems.orderId, createdOrderId));
+    if (item) await db.delete(instructorEarnings).where(eq(instructorEarnings.orderItemId, item.id));
+    await db.delete(enrollments).where(eq(enrollments.orderId, createdOrderId));
+    await db.delete(paymentProofs).where(eq(paymentProofs.orderId, createdOrderId));
+    await db.delete(orderItems).where(eq(orderItems.orderId, createdOrderId));
+    await db.delete(orders).where(eq(orders.id, createdOrderId));
+  });
+
   test("un alumno compra, sube comprobante, y el admin lo aprueba", async ({ page, context }) => {
     // Este entorno de desarrollo no tiene credenciales reales de Cloudflare R2
     // (ver .env.local: R2_ACCOUNT_ID vacío), así que la URL presignada que
@@ -27,6 +67,9 @@ test.describe("compra con pago manual", () => {
     });
     expect(res.ok()).toBe(true);
     const { orderNumber } = await res.json();
+    const { db, eq, orders } = await getDbHandles();
+    const [createdOrder] = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderNumber, orderNumber));
+    createdOrderId = createdOrder?.id;
 
     await page.goto(`/pago/${orderNumber}`);
     await expect(page.getByText(orderNumber)).toBeVisible();
