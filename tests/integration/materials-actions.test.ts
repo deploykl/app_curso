@@ -7,9 +7,11 @@ let alumnoId: string;
 let otroId: string;
 let sessionId: string;
 let cursoId: string;
+let currentUserId = "";
 
 vi.mock("@/modules/auth/session", () => ({
   assertRole: vi.fn(async () => ({ id: profId, role: "instructor", name: "Prof" })),
+  requireUser: vi.fn(async () => ({ id: currentUserId, role: "student", name: "Alumno" })),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/r2", () => ({
@@ -76,7 +78,8 @@ describe("getMaterialDownloadUrl", () => {
       fileSize: 1000, mimeType: "application/pdf",
     });
     const [m] = await db.select().from(sessionMaterials);
-    const url = await acts.getMaterialDownloadUrl(alumnoId, m.id);
+    currentUserId = alumnoId;
+    const url = await acts.getMaterialDownloadUrl(m.id);
     expect(url).toContain("materials/x/guia.pdf");
   });
 
@@ -86,7 +89,8 @@ describe("getMaterialDownloadUrl", () => {
       fileSize: 1000, mimeType: "application/pdf",
     });
     const [m] = await db.select().from(sessionMaterials);
-    await expect(acts.getMaterialDownloadUrl(otroId, m.id)).rejects.toThrow(/no está inscrito/i);
+    currentUserId = otroId;
+    await expect(acts.getMaterialDownloadUrl(m.id)).rejects.toThrow(/no está inscrito/i);
   });
 
   it("niega si la inscripción fue revocada", async () => {
@@ -96,6 +100,7 @@ describe("getMaterialDownloadUrl", () => {
     });
     const [m] = await db.select().from(sessionMaterials);
     await db.update(enrollments).set({ status: "revoked" });
-    await expect(acts.getMaterialDownloadUrl(alumnoId, m.id)).rejects.toThrow(/no está inscrito/i);
+    currentUserId = alumnoId;
+    await expect(acts.getMaterialDownloadUrl(m.id)).rejects.toThrow(/no está inscrito/i);
   });
 });

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { sessionMaterials, classSessions, courses } from "@/db/schema";
-import { assertRole } from "@/modules/auth/session";
+import { assertRole, requireUser } from "@/modules/auth/session";
 import { canManageCourse, assertEnrolled, ForbiddenError, type Role } from "@/modules/auth/guards";
 import { presignGet, deleteObject } from "@/lib/r2";
 
@@ -74,8 +74,9 @@ export async function deleteMaterial(materialId: string) {
   revalidatePath(`/instructor/cursos/${courseId}/sesiones`);
 }
 
-/** Devuelve una URL de descarga solo si el usuario está inscrito en el curso. */
-export async function getMaterialDownloadUrl(userId: string, materialId: string): Promise<string> {
+/** Devuelve una URL de descarga solo si el usuario actual está inscrito en el curso. */
+export async function getMaterialDownloadUrl(materialId: string): Promise<string> {
+  const u = await requireUser();
   const [m] = await db
     .select({
       fileKey: sessionMaterials.fileKey,
@@ -88,7 +89,7 @@ export async function getMaterialDownloadUrl(userId: string, materialId: string)
     .limit(1);
 
   if (!m) throw new ForbiddenError("Material no encontrado.");
-  await assertEnrolled(userId, m.courseId);
+  await assertEnrolled(u.id, m.courseId);
 
   if (m.externalUrl) return m.externalUrl;
   return presignGet(m.fileKey!);
