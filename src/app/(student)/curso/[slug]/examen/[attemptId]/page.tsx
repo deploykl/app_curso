@@ -52,7 +52,7 @@ export default async function IntentoPage({
         numero: p.numero,
         promptMd: p.promptMd,
         points: p.points,
-        opciones: p.opciones,
+        opciones: p.opciones.map((o) => ({ id: o.id, text: o.text })),
         seleccionadaId: p.seleccionadaId,
       }))}
     />

@@ -39,6 +39,10 @@ export function IntentoRunner({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
+  if (preguntas.length === 0) {
+    return <p className="text-muted-foreground">Este examen no tiene preguntas.</p>;
+  }
+
   const actual = preguntas[indice];
   const respondidas = preguntas.filter((p) => respuestas[p.id]).length;
 
