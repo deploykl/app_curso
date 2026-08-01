@@ -13,6 +13,7 @@ export interface PreguntaListItem {
   promptMd: string;
   explanationMd: string | null;
   points: number;
+  isActive: boolean;
   opciones: { id: string; text: string; isCorrect: boolean }[];
 }
 
@@ -39,13 +40,18 @@ export function QuestionList({
     });
   }
 
-  if (preguntas.length === 0) {
+  // Las preguntas archivadas (isActive: false) ya no cuentan para el examen;
+  // no se muestran en el banco (siguen en la base de datos por si en el futuro
+  // hace falta auditarlas, pero eso no es cosa de esta vista).
+  const visibles = preguntas.filter((p) => p.isActive);
+
+  if (visibles.length === 0) {
     return <p className="text-muted-foreground">Todavía no hay preguntas. Agrega la primera abajo.</p>;
   }
 
   return (
     <ul className="flex flex-col gap-4">
-      {preguntas.map((p, i) => {
+      {visibles.map((p, i) => {
         const valores: QuestionFormValues = {
           type: p.type,
           promptMd: p.promptMd,

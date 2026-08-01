@@ -67,6 +67,7 @@ export default async function ExamenInstructorPage({
                 promptMd: p.promptMd,
                 explanationMd: p.explanationMd,
                 points: p.points,
+                isActive: p.isActive,
                 opciones: p.opciones.map((o) => ({ id: o.id, text: o.text, isCorrect: o.isCorrect })),
               }))}
             />

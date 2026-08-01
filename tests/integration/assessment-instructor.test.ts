@@ -234,6 +234,39 @@ describe("eliminarPregunta", () => {
       acts.guardarPregunta(cursoId, q.id, { ...PREGUNTA, promptMd: "Edición prohibida" })
     ).rejects.toThrow(/ya fue respondida por alumnos/i);
   });
+
+  it("despublica el examen si al archivar la última pregunta activa lo deja vacío", async () => {
+    await acts.guardarExamen(cursoId, CONFIG);
+    await acts.guardarPregunta(cursoId, null, PREGUNTA);
+    await acts.publicarExamen(cursoId);
+    const [q] = await db.select().from(questions);
+
+    const [alumno] = await db.insert(user).values({
+      id: crypto.randomUUID(), name: "Alumno", email: "a@test.pe", emailVerified: true, role: "student",
+    }).returning();
+    await db.insert(enrollments).values({
+      userId: alumno.id, courseId: cursoId, status: "active",
+    }).returning();
+
+    // El alumno usa la única pregunta del examen.
+    currentUser = { id: alumno.id, role: "student" };
+    const attemptId = await acts.iniciarIntento(cursoId);
+    const [opcion] = await db
+      .select()
+      .from(questionOptions)
+      .where(eq(questionOptions.questionId, q.id));
+    await acts.responder(attemptId, q.id, opcion.id);
+    await acts.enviarIntento(attemptId);
+
+    currentUser = { id: profId, role: "instructor" };
+    await acts.eliminarPregunta(cursoId, q.id);
+
+    const [archivada] = await db.select().from(questions).where(eq(questions.id, q.id));
+    expect(archivada.isActive).toBe(false);
+
+    const [ex] = await db.select().from(exams).where(eq(exams.courseId, cursoId));
+    expect(ex.isPublished).toBe(false);
+  });
 });
 
 describe("publicarExamen", () => {

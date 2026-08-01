@@ -176,6 +176,29 @@ describe("iniciarIntento", () => {
     await db.update(questions).set({ isActive: false }).where(eq(questions.examId, examId));
     await expect(acts.iniciarIntento(cursoId)).rejects.toThrow(/no tiene preguntas/i);
   });
+
+  it("dos llamadas concurrentes nunca truenan y devuelven el mismo intento", async () => {
+    // No hay forma determinista de forzar la violación real de attempt_number_uq
+    // desde fuera de la función (ambas llamadas leen `previos` de forma independiente
+    // y Promise.all no garantiza que ambas lean antes de que la primera inserte).
+    // Este test verifica la propiedad que sí podemos garantizar de forma determinista:
+    // ninguna de las dos llamadas debe lanzar, y ambas deben converger al mismo
+    // intento in_progress. Si el entorno llega a intercalarlas lo suficiente como
+    // para chocar contra el unique constraint, este mismo test ejercita también la
+    // ruta de recuperación (catch -> SELECT fuera de la tx) sin quedar marcado como
+    // flaky en ningún caso: con o sin colisión real, la aserción final es la misma.
+    const [a1, a2] = await Promise.all([
+      acts.iniciarIntento(cursoId),
+      acts.iniciarIntento(cursoId),
+    ]);
+    expect(a1).toBe(a2);
+
+    const enCurso = await db
+      .select()
+      .from(examAttempts)
+      .where(and(eq(examAttempts.enrollmentId, enrollmentId), eq(examAttempts.status, "in_progress")));
+    expect(enCurso).toHaveLength(1);
+  });
 });
 
 describe("getExamenDeCurso", () => {

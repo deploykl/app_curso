@@ -178,7 +178,7 @@ export async function eliminarPregunta(courseId: string, questionId: string): Pr
   // No usamos loadExam aquí: si el curso no tiene examen (o la pregunta es de
   // otro examen) es igualmente "no pertenece", no "examen no configurado".
   const [row] = await db
-    .select({ id: questions.id, examCourseId: exams.courseId })
+    .select({ id: questions.id, examId: questions.examId, examCourseId: exams.courseId })
     .from(questions)
     .innerJoin(exams, eq(exams.id, questions.examId))
     .where(eq(questions.id, questionId))
@@ -197,6 +197,20 @@ export async function eliminarPregunta(courseId: string, questionId: string): Pr
   } else {
     // question_options tiene ON DELETE CASCADE sobre question_id.
     await db.delete(questions).where(eq(questions.id, questionId));
+  }
+
+  // Un examen no puede publicarse vacío (canPublishExam); tampoco debería poder
+  // quedar publicado y vacío: si esta eliminación dejó el banco activo en 0,
+  // lo despublicamos automáticamente en vez de dejarlo publicado-pero-roto.
+  const [examen] = await db.select().from(exams).where(eq(exams.id, row.examId)).limit(1);
+  if (examen?.isPublished) {
+    const [{ value: restantes }] = await db
+      .select({ value: count() })
+      .from(questions)
+      .where(and(eq(questions.examId, examen.id), eq(questions.isActive, true)));
+    if (Number(restantes) === 0) {
+      await db.update(exams).set({ isPublished: false }).where(eq(exams.id, examen.id));
+    }
   }
 
   revalidatePath(`/instructor/cursos/${courseId}/examen`);
@@ -293,8 +307,9 @@ export async function iniciarIntento(courseId: string): Promise<string> {
     ? new Date(Date.now() + exam.timeLimitMinutes * 60_000)
     : null;
 
-  const attemptId = await db.transaction(async (tx) => {
-    try {
+  let attemptId: string;
+  try {
+    attemptId = await db.transaction(async (tx) => {
       const [a] = await tx
         .insert(examAttempts)
         .values({ enrollmentId: enrollment.id, attemptNumber, expiresAt, status: "in_progress" })
@@ -304,19 +319,36 @@ export async function iniciarIntento(courseId: string): Promise<string> {
         elegidas.map((q, i) => ({ attemptId: a.id, questionId: q.id, orderIndex: i }))
       );
       return a.id;
-    } catch (err) {
-      // Dos requests concurrentes (doble clic, dos pestañas) pueden calcular el mismo
-      // attemptNumber; el que pierde la carrera contra el unique constraint recupera
-      // el intento in_progress que la otra request acaba de crear.
-      const [existente] = await tx
-        .select({ id: examAttempts.id })
-        .from(examAttempts)
-        .where(and(eq(examAttempts.enrollmentId, enrollment.id), eq(examAttempts.status, "in_progress")))
-        .limit(1);
-      if (existente) return existente.id;
-      throw err;
-    }
-  });
+    });
+  } catch (err) {
+    // Dos requests concurrentes (doble clic, dos pestañas) pueden calcular el mismo
+    // attemptNumber; el que pierde la carrera contra el unique constraint (23505,
+    // attempt_number_uq) recupera el intento in_progress que la otra request acaba
+    // de crear. La recuperación se hace FUERA de la transacción abortada: en
+    // Postgres, tras un error dentro de una transacción, cualquier statement
+    // posterior en esa misma tx (incluido un SELECT) falla con 25P02.
+    //
+    // drizzle-orm envuelve el error del driver en un DrizzleQueryError y expone el
+    // original en `.cause` (ver pg-core/session.ts: `throw new DrizzleQueryError(...)`),
+    // así que el código SQLSTATE de postgres-js puede venir en `err.code` o en
+    // `err.cause.code` según de dónde se origine el fallo.
+    const codigoSqlstate = (candidate: unknown): string | undefined =>
+      candidate && typeof candidate === "object" && "code" in candidate
+        ? (candidate as { code?: unknown }).code as string | undefined
+        : undefined;
+    const esConflictoDeIntento =
+      codigoSqlstate(err) === "23505" ||
+      codigoSqlstate((err as { cause?: unknown } | undefined)?.cause) === "23505";
+    if (!esConflictoDeIntento) throw err;
+
+    const [existente] = await db
+      .select({ id: examAttempts.id })
+      .from(examAttempts)
+      .where(and(eq(examAttempts.enrollmentId, enrollment.id), eq(examAttempts.status, "in_progress")))
+      .limit(1);
+    if (!existente) throw err;
+    attemptId = existente.id;
+  }
 
   const [course] = await db
     .select({ slug: courses.slug })
