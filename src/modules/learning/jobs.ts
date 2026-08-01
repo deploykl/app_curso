@@ -30,7 +30,12 @@ export function reminderWindows(now: Date = new Date()): { kind24h: ReminderWind
   };
 }
 
-async function sendForWindow(kind: "24h" | "1h", window: ReminderWindow): Promise<number> {
+interface WindowResult {
+  sent: number;
+  failed: number;
+}
+
+async function sendForWindow(kind: "24h" | "1h", window: ReminderWindow): Promise<WindowResult> {
   const sessions = await db
     .select()
     .from(classSessions)
@@ -41,6 +46,7 @@ async function sendForWindow(kind: "24h" | "1h", window: ReminderWindow): Promis
     ));
 
   let sentCount = 0;
+  let failedCount = 0;
   for (const session of sessions) {
     const students = await db
       .select({ enrollmentId: enrollments.id, userId: user.id, email: user.email, name: user.name })
@@ -67,16 +73,31 @@ async function sendForWindow(kind: "24h" | "1h", window: ReminderWindow): Promis
         startsAtLabel: formatLima(session.startsAt),
         zoomUrl: session.zoomUrl,
       });
-      await sendEmail({ to: s.email, userId: s.userId, template: `session-reminder-${kind}`, subject, html });
+      const result = await sendEmail({ to: s.email, userId: s.userId, template: `session-reminder-${kind}`, subject, html });
+      if (!result.ok) {
+        // sendEmail nunca lanza: captura la excepción y devuelve { ok: false }.
+        // Si no borramos la fila recién insertada, la próxima corrida del cron
+        // hace "continue" al verla y este recordatorio se pierde para siempre.
+        // La borramos para permitir reintento en la siguiente corrida.
+        failedCount++;
+        await db.delete(sessionRemindersSent).where(and(
+          eq(sessionRemindersSent.enrollmentId, s.enrollmentId),
+          eq(sessionRemindersSent.classSessionId, session.id),
+          eq(sessionRemindersSent.kind, kind)
+        ));
+        continue;
+      }
       sentCount++;
     }
   }
-  return sentCount;
+  return { sent: sentCount, failed: failedCount };
 }
 
-export async function sendSessionReminders(now: Date = new Date()): Promise<{ sent24h: number; sent1h: number }> {
+export async function sendSessionReminders(
+  now: Date = new Date()
+): Promise<{ sent24h: number; sent1h: number; failed: number }> {
   const windows = reminderWindows(now);
-  const sent24h = await sendForWindow("24h", windows.kind24h);
-  const sent1h = await sendForWindow("1h", windows.kind1h);
-  return { sent24h, sent1h };
+  const r24h = await sendForWindow("24h", windows.kind24h);
+  const r1h = await sendForWindow("1h", windows.kind1h);
+  return { sent24h: r24h.sent, sent1h: r1h.sent, failed: r24h.failed + r1h.failed };
 }

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { db } from "@/db";
 import { user, courses, classSessions, enrollments, sessionRemindersSent } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -34,6 +34,19 @@ beforeEach(async () => {
   cursoId = c.id;
 
   await db.insert(enrollments).values({ userId: alumnoId, courseId: cursoId, status: "active" });
+});
+
+afterEach(async () => {
+  // Sin esto, la última corrida del beforeEach deja un enrollment/course
+  // colgando después de que termina este archivo: otros suites de
+  // integración (order-expiry.test.ts, billing-proof.test.ts) hacen
+  // `db.delete(courses)` sin limpiar antes `enrollments`, y esa fila
+  // huérfana revienta su DELETE por la FK si vitest los corre después.
+  await db.delete(sessionRemindersSent);
+  await db.delete(enrollments);
+  await db.delete(classSessions);
+  await db.delete(courses);
+  await db.delete(user);
 });
 
 describe("reminderWindows", () => {
@@ -92,6 +105,31 @@ describe("sendSessionReminders", () => {
     const result = await sendSessionReminders(now);
     expect(result.sent24h).toBe(0);
     expect(result.sent1h).toBe(0);
+    expect(result.failed).toBe(0);
     expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("si sendEmail falla, borra la fila insertada para permitir reintento y no cuenta el envío", async () => {
+    sendEmailMock.mockResolvedValueOnce({ ok: false });
+    const now = new Date("2026-08-01T00:00:00Z");
+    await db.insert(classSessions).values({
+      courseId: cursoId, title: "Clase", status: "scheduled",
+      startsAt: new Date("2026-08-02T00:00:00Z"), durationMinutes: 60,
+      zoomUrl: "https://zoom.us/j/1",
+    });
+
+    const result = await sendSessionReminders(now);
+    expect(result.sent24h).toBe(0);
+    expect(result.failed).toBe(1);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+
+    // la fila NO debe quedar, así la siguiente corrida reintenta en vez de hacer "continue"
+    expect(await db.select().from(sessionRemindersSent)).toHaveLength(0);
+
+    sendEmailMock.mockClear();
+    const retry = await sendSessionReminders(now);
+    expect(retry.sent24h).toBe(1);
+    expect(retry.failed).toBe(0);
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
   });
 });
