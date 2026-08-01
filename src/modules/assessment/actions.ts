@@ -13,6 +13,7 @@ import {
   barajarConSemilla, calcularNota, canPublishExam,
   evaluarElegibilidad, examSettingsSchema, questionInputSchema,
 } from "./service";
+import { cargarIntentoPropio } from "./queries";
 
 /** Carga el curso comprobando que quien llama puede gestionarlo. */
 async function loadOwnedCourse(userId: string, role: string, courseId: string) {
@@ -256,4 +257,51 @@ export async function iniciarIntento(courseId: string): Promise<string> {
   revalidatePath(`/curso/${course.slug}/examen`);
 
   return attemptId;
+}
+
+export async function responder(
+  attemptId: string,
+  questionId: string,
+  optionId: string
+): Promise<void> {
+  const u = await requireUser();
+  const ctx = await cargarIntentoPropio(u.id, attemptId);
+  if (!ctx) throw new Error("Intento no encontrado.");
+  if (ctx.status !== "in_progress") throw new Error("Este intento ya fue enviado.");
+  if (ctx.expiresAt && Date.now() > ctx.expiresAt.getTime()) {
+    throw new Error("El tiempo del examen terminó.");
+  }
+
+  const [enElIntento] = await db
+    .select({ questionId: examAttemptQuestions.questionId })
+    .from(examAttemptQuestions)
+    .where(and(
+      eq(examAttemptQuestions.attemptId, attemptId),
+      eq(examAttemptQuestions.questionId, questionId),
+    ))
+    .limit(1);
+  if (!enElIntento) throw new Error("Esa pregunta no pertenece a este intento.");
+
+  const [opcion] = await db
+    .select({ id: questionOptions.id, isCorrect: questionOptions.isCorrect })
+    .from(questionOptions)
+    .where(and(eq(questionOptions.id, optionId), eq(questionOptions.questionId, questionId)))
+    .limit(1);
+  if (!opcion) throw new Error("Opción inválida.");
+
+  await db
+    .insert(examAttemptAnswers)
+    .values({
+      attemptId,
+      questionId,
+      selectedOptionId: optionId,
+      isCorrect: opcion.isCorrect,
+    })
+    .onConflictDoUpdate({
+      target: [examAttemptAnswers.attemptId, examAttemptAnswers.questionId],
+      set: { selectedOptionId: optionId, isCorrect: opcion.isCorrect, answeredAt: new Date() },
+    });
+
+  // Sin revalidatePath a propósito: revalidar re-renderizaría el examen a mitad.
+  // Y sin valor de retorno: isCorrect no viaja al cliente.
 }

@@ -2,9 +2,10 @@ import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   courses, enrollments, exams, questions, questionOptions, examAttempts, user,
+  examAttemptQuestions, examAttemptAnswers,
 } from "@/db/schema";
 import { assertEnrolled, canManageCourse, type Role } from "@/modules/auth/guards";
-import { evaluarElegibilidad } from "./service";
+import { barajarConSemilla, evaluarElegibilidad, semillaOpciones } from "./service";
 
 export interface OpcionDelBanco {
   id: string;
@@ -208,5 +209,175 @@ export async function getExamenDeCurso(
       })),
     puedeIniciar: enCurso !== null || eleg.puedeIniciar,
     desbloqueaA: eleg.desbloqueaA,
+  };
+}
+
+export interface ContextoIntento {
+  attemptId: string;
+  enrollmentId: string;
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  examId: string;
+  examTitle: string;
+  passingScore: number;
+  status: "in_progress" | "submitted" | "abandoned";
+  startedAt: Date;
+  submittedAt: Date | null;
+  expiresAt: Date | null;
+  score: string | null;
+  passed: boolean | null;
+}
+
+/**
+ * Carga el intento comprobando que pertenece al usuario. Devuelve null si no existe
+ * o es de otra persona: quien pregunta no debe poder distinguir ambos casos.
+ */
+export async function cargarIntentoPropio(
+  userId: string,
+  attemptId: string
+): Promise<ContextoIntento | null> {
+  const [row] = await db
+    .select({
+      attemptId: examAttempts.id,
+      enrollmentId: examAttempts.enrollmentId,
+      status: examAttempts.status,
+      startedAt: examAttempts.startedAt,
+      submittedAt: examAttempts.submittedAt,
+      expiresAt: examAttempts.expiresAt,
+      score: examAttempts.score,
+      passed: examAttempts.passed,
+      userId: enrollments.userId,
+      courseId: courses.id,
+      courseSlug: courses.slug,
+      courseTitle: courses.title,
+      examId: exams.id,
+      examTitle: exams.title,
+      passingScore: exams.passingScore,
+    })
+    .from(examAttempts)
+    .innerJoin(enrollments, eq(enrollments.id, examAttempts.enrollmentId))
+    .innerJoin(courses, eq(courses.id, enrollments.courseId))
+    .innerJoin(exams, eq(exams.courseId, courses.id))
+    .where(eq(examAttempts.id, attemptId))
+    .limit(1);
+
+  if (!row || row.userId !== userId) return null;
+
+  await assertEnrolled(userId, row.courseId);
+
+  const { userId: _descartado, ...ctx } = row;
+  return ctx;
+}
+
+export interface OpcionParaResolver {
+  id: string;
+  text: string;
+}
+
+export interface PreguntaParaResolver {
+  id: string;
+  numero: number;
+  type: "mcq" | "true_false";
+  promptMd: string;
+  points: number;
+  opciones: OpcionParaResolver[];
+  seleccionadaId: string | null;
+}
+
+export interface IntentoParaResolver {
+  attemptId: string;
+  courseSlug: string;
+  courseTitle: string;
+  examTitle: string;
+  expiresAt: Date | null;
+  vencido: boolean;
+  preguntas: PreguntaParaResolver[];
+}
+
+/**
+ * Vista del intento en curso. NO selecciona questionOptions.isCorrect ni
+ * questions.explanationMd: no se filtran después, no se leen.
+ */
+export async function getIntentoParaResolver(
+  userId: string,
+  attemptId: string
+): Promise<IntentoParaResolver | null> {
+  const ctx = await cargarIntentoPropio(userId, attemptId);
+  if (!ctx) return null;
+
+  const [exam] = await db
+    .select({ shuffleOptions: exams.shuffleOptions })
+    .from(exams)
+    .where(eq(exams.id, ctx.examId))
+    .limit(1);
+
+  const filas = await db
+    .select({
+      id: questions.id,
+      type: questions.type,
+      promptMd: questions.promptMd,
+      points: questions.points,
+      orderIndex: examAttemptQuestions.orderIndex,
+    })
+    .from(examAttemptQuestions)
+    .innerJoin(questions, eq(questions.id, examAttemptQuestions.questionId))
+    .where(eq(examAttemptQuestions.attemptId, attemptId))
+    .orderBy(asc(examAttemptQuestions.orderIndex));
+
+  const questionIds = filas.map((f) => f.id);
+
+  const opciones = questionIds.length
+    ? await db
+        .select({
+          id: questionOptions.id,
+          questionId: questionOptions.questionId,
+          text: questionOptions.text,
+          orderIndex: questionOptions.orderIndex,
+        })
+        .from(questionOptions)
+        .where(inArray(questionOptions.questionId, questionIds))
+        .orderBy(asc(questionOptions.orderIndex))
+    : [];
+
+  const respuestas = questionIds.length
+    ? await db
+        .select({
+          questionId: examAttemptAnswers.questionId,
+          selectedOptionId: examAttemptAnswers.selectedOptionId,
+        })
+        .from(examAttemptAnswers)
+        .where(eq(examAttemptAnswers.attemptId, attemptId))
+    : [];
+  const seleccionadas = new Map(respuestas.map((r) => [r.questionId, r.selectedOptionId]));
+
+  const porPregunta = new Map<string, OpcionParaResolver[]>();
+  for (const o of opciones) {
+    const lista = porPregunta.get(o.questionId) ?? [];
+    lista.push({ id: o.id, text: o.text });
+    porPregunta.set(o.questionId, lista);
+  }
+
+  return {
+    attemptId: ctx.attemptId,
+    courseSlug: ctx.courseSlug,
+    courseTitle: ctx.courseTitle,
+    examTitle: ctx.examTitle,
+    expiresAt: ctx.expiresAt,
+    vencido: ctx.expiresAt !== null && Date.now() > ctx.expiresAt.getTime(),
+    preguntas: filas.map((f, i) => {
+      const suyas = porPregunta.get(f.id) ?? [];
+      return {
+        id: f.id,
+        numero: i + 1,
+        type: f.type,
+        promptMd: f.promptMd,
+        points: f.points,
+        opciones: exam?.shuffleOptions
+          ? barajarConSemilla(suyas, semillaOpciones(attemptId, f.id))
+          : suyas,
+        seleccionadaId: seleccionadas.get(f.id) ?? null,
+      };
+    }),
   };
 }
