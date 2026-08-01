@@ -30,6 +30,12 @@ export default async function EditarCursoPage({ params }: { params: Promise<{ id
           >
             Sesiones de clase
           </Link>
+          <Link
+            href={`/instructor/cursos/${course.id}/examen`}
+            className="text-sm text-primary hover:underline"
+          >
+            Examen
+          </Link>
           <PublishButton courseId={course.id} status={course.status} />
         </div>
       </div>
