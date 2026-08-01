@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/expirar-ordenes", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/recordatorios", "schedule": "*/15 * * * *" }
+  ]
+}
