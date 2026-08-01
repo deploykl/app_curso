@@ -1,15 +1,31 @@
 "use server";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql as sqlOp } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { orders, orderItems, courses, instructorProfiles, paymentProofs, enrollments, instructorEarnings } from "@/db/schema";
+import { orders, orderItems, courses, instructorProfiles, paymentProofs, enrollments, instructorEarnings, user } from "@/db/schema";
 import { requireUser, assertRole } from "@/modules/auth/session";
 import { isEnrolled } from "@/modules/auth/guards";
 import { resolveCommissionRate, limaLocalToUtc } from "@/modules/catalog/service";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS, EARNING_AVAILABLE_DAYS } from "./service";
 import { nextOrderNumber, findCouponByCode } from "./queries";
+import { env } from "@/env";
+import { sendEmail } from "@/modules/notifications/mailer";
+import { paymentProofReceivedTemplate } from "@/modules/notifications/templates/payment-proof-received";
+import { orderApprovedTemplate } from "@/modules/notifications/templates/order-approved";
+import { orderRejectedTemplate } from "@/modules/notifications/templates/order-rejected";
+
+export async function expireStaleOrders(now: Date = new Date()): Promise<number> {
+  const result = await db.execute<{ id: string }>(sqlOp`
+    update orders set status = 'expired'
+    where status = 'pending'
+      and expires_at < ${now.toISOString()}
+      and id not in (select order_id from payment_proofs where status = 'pending')
+    returning id
+  `);
+  return result.length;
+}
 
 export async function crearOrden(courseId: string, couponCode?: string) {
   const u = await requireUser();
@@ -109,6 +125,12 @@ export async function submitPaymentProof(orderId: string, raw: unknown) {
     proofFileKey: input.fileKey,
     status: "pending",
   });
+
+  const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
+  const { subject, html } = paymentProofReceivedTemplate({
+    orderNumber: order.orderNumber, courseTitle: item?.titleSnapshot ?? "",
+  });
+  await sendEmail({ to: env.MAIL_FROM, template: "payment-proof-received", subject, html });
 }
 
 export async function aprobarPago(orderId: string) {
@@ -159,6 +181,14 @@ export async function aprobarPago(orderId: string) {
   });
 
   revalidatePath("/admin/pagos");
+
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
+  const [buyer] = await db.select().from(user).where(eq(user.id, order.userId)).limit(1);
+  if (order && item && buyer) {
+    const { subject, html } = orderApprovedTemplate({ name: buyer.name, courseTitle: item.titleSnapshot });
+    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-approved", subject, html });
+  }
 }
 
 export async function rechazarPago(orderId: string, reason: string) {
@@ -176,4 +206,14 @@ export async function rechazarPago(orderId: string, reason: string) {
   }).where(eq(paymentProofs.id, proof.id));
 
   revalidatePath("/admin/pagos");
+
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
+  const [buyer] = order ? await db.select().from(user).where(eq(user.id, order.userId)).limit(1) : [];
+  if (order && item && buyer) {
+    const { subject, html } = orderRejectedTemplate({
+      name: buyer.name, courseTitle: item.titleSnapshot, reason, orderNumber: order.orderNumber,
+    });
+    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-rejected", subject, html });
+  }
 }
