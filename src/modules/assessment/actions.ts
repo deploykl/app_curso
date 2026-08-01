@@ -1,13 +1,18 @@
 "use server";
-import { and, asc, count, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
-  courses, enrollments, exams, questions, questionOptions, examAttempts,
+  courses, enrollments, exams, questions, questionOptions,
+  examAttempts, examAttemptQuestions, examAttemptAnswers,
 } from "@/db/schema";
-import { assertRole } from "@/modules/auth/session";
-import { canManageCourse, ForbiddenError, type Role } from "@/modules/auth/guards";
-import { examSettingsSchema, questionInputSchema, canPublishExam } from "./service";
+import { assertRole, requireUser } from "@/modules/auth/session";
+import { assertEnrolled, canManageCourse, ForbiddenError, type Role } from "@/modules/auth/guards";
+import { formatLima } from "@/lib/datetime";
+import {
+  barajarConSemilla, calcularNota, canPublishExam,
+  evaluarElegibilidad, examSettingsSchema, questionInputSchema,
+} from "./service";
 
 /** Carga el curso comprobando que quien llama puede gestionarlo. */
 async function loadOwnedCourse(userId: string, role: string, courseId: string) {
@@ -167,4 +172,88 @@ export async function despublicarExamen(courseId: string): Promise<void> {
 
   await db.update(exams).set({ isPublished: false }).where(eq(exams.id, exam.id));
   revalidatePath(`/instructor/cursos/${courseId}/examen`);
+}
+
+export async function iniciarIntento(courseId: string): Promise<string> {
+  const u = await requireUser();
+  await assertEnrolled(u.id, courseId);
+
+  const [enrollment] = await db
+    .select({ id: enrollments.id })
+    .from(enrollments)
+    .where(and(
+      eq(enrollments.userId, u.id),
+      eq(enrollments.courseId, courseId),
+      eq(enrollments.status, "active"),
+    ))
+    .limit(1);
+  if (!enrollment) throw new Error("Inscripción no encontrada.");
+
+  const [exam] = await db.select().from(exams).where(eq(exams.courseId, courseId)).limit(1);
+  if (!exam || !exam.isPublished) {
+    throw new Error("Este curso todavía no tiene un examen publicado.");
+  }
+
+  const previos = await db
+    .select({ id: examAttempts.id, attemptNumber: examAttempts.attemptNumber,
+              startedAt: examAttempts.startedAt, status: examAttempts.status })
+    .from(examAttempts)
+    .where(eq(examAttempts.enrollmentId, enrollment.id))
+    .orderBy(desc(examAttempts.startedAt));
+
+  // Invariante: un intento in_progress no genera otro.
+  const enCurso = previos.find((p) => p.status === "in_progress");
+  if (enCurso) return enCurso.id;
+
+  const eleg = evaluarElegibilidad({
+    intentosUsados: previos.length,
+    maxAttempts: exam.maxAttempts,
+    ultimoIntentoAt: previos[0]?.startedAt ?? null,
+    lockoutHours: exam.lockoutHours,
+  });
+  if (!eleg.puedeIniciar) {
+    throw new Error(
+      `Agotaste tus intentos. Podrás volver a intentarlo el ${formatLima(eleg.desbloqueaA!)}.`
+    );
+  }
+
+  const banco = await db
+    .select({ id: questions.id })
+    .from(questions)
+    .where(and(eq(questions.examId, exam.id), eq(questions.isActive, true)))
+    .orderBy(asc(questions.orderIndex));
+  if (banco.length === 0) throw new Error("El examen no tiene preguntas.");
+
+  const attemptNumber = previos.reduce((max, p) => Math.max(max, p.attemptNumber), 0) + 1;
+  const ordenadas = exam.shuffleQuestions
+    ? barajarConSemilla(banco, `${enrollment.id}:${attemptNumber}`)
+    : banco;
+  const elegidas = exam.questionsPerAttempt
+    ? ordenadas.slice(0, exam.questionsPerAttempt)
+    : ordenadas;
+
+  const expiresAt = exam.timeLimitMinutes
+    ? new Date(Date.now() + exam.timeLimitMinutes * 60_000)
+    : null;
+
+  const attemptId = await db.transaction(async (tx) => {
+    const [a] = await tx
+      .insert(examAttempts)
+      .values({ enrollmentId: enrollment.id, attemptNumber, expiresAt, status: "in_progress" })
+      .returning({ id: examAttempts.id });
+
+    await tx.insert(examAttemptQuestions).values(
+      elegidas.map((q, i) => ({ attemptId: a.id, questionId: q.id, orderIndex: i }))
+    );
+    return a.id;
+  });
+
+  const [course] = await db
+    .select({ slug: courses.slug })
+    .from(courses)
+    .where(eq(courses.id, courseId))
+    .limit(1);
+  revalidatePath(`/curso/${course.slug}/examen`);
+
+  return attemptId;
 }

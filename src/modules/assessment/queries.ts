@@ -1,7 +1,10 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, exams, questions, questionOptions, user } from "@/db/schema";
-import { canManageCourse, type Role } from "@/modules/auth/guards";
+import {
+  courses, enrollments, exams, questions, questionOptions, examAttempts, user,
+} from "@/db/schema";
+import { assertEnrolled, canManageCourse, type Role } from "@/modules/auth/guards";
+import { evaluarElegibilidad } from "./service";
 
 export interface OpcionDelBanco {
   id: string;
@@ -108,5 +111,102 @@ export async function getBancoPreguntas(
       isActive: q.isActive,
       opciones: porPregunta.get(q.id) ?? [],
     })),
+  };
+}
+
+export interface IntentoResumen {
+  id: string;
+  attemptNumber: number;
+  submittedAt: Date | null;
+  scorePct: number | null;
+  passed: boolean | null;
+}
+
+export interface ExamenPrevio {
+  courseId: string;
+  courseSlug: string;
+  courseTitle: string;
+  examTitle: string;
+  passingScore: number;
+  maxAttempts: number;
+  timeLimitMinutes: number | null;
+  totalPreguntas: number;
+  intentoEnCurso: string | null;
+  intentos: IntentoResumen[];
+  puedeIniciar: boolean;
+  desbloqueaA: Date | null;
+}
+
+/**
+ * Pantalla previa del alumno. Devuelve null si el curso no existe o el examen no
+ * está publicado; lanza ForbiddenError si el usuario no está inscrito.
+ */
+export async function getExamenDeCurso(
+  userId: string,
+  slug: string
+): Promise<ExamenPrevio | null> {
+  const [course] = await db
+    .select({ id: courses.id, slug: courses.slug, title: courses.title })
+    .from(courses)
+    .where(eq(courses.slug, slug))
+    .limit(1);
+  if (!course) return null;
+
+  await assertEnrolled(userId, course.id);
+
+  const [exam] = await db.select().from(exams).where(eq(exams.courseId, course.id)).limit(1);
+  if (!exam || !exam.isPublished) return null;
+
+  const [{ value: totalPreguntas }] = await db
+    .select({ value: count() })
+    .from(questions)
+    .where(and(eq(questions.examId, exam.id), eq(questions.isActive, true)));
+
+  const [enrollment] = await db
+    .select({ id: enrollments.id })
+    .from(enrollments)
+    .where(and(
+      eq(enrollments.userId, userId),
+      eq(enrollments.courseId, course.id),
+      eq(enrollments.status, "active"),
+    ))
+    .limit(1);
+  if (!enrollment) return null;
+
+  const attempts = await db
+    .select()
+    .from(examAttempts)
+    .where(eq(examAttempts.enrollmentId, enrollment.id))
+    .orderBy(desc(examAttempts.startedAt));
+
+  const enCurso = attempts.find((a) => a.status === "in_progress") ?? null;
+  const eleg = evaluarElegibilidad({
+    intentosUsados: attempts.length,
+    maxAttempts: exam.maxAttempts,
+    ultimoIntentoAt: attempts[0]?.startedAt ?? null,
+    lockoutHours: exam.lockoutHours,
+  });
+
+  return {
+    courseId: course.id,
+    courseSlug: course.slug,
+    courseTitle: course.title,
+    examTitle: exam.title,
+    passingScore: exam.passingScore,
+    maxAttempts: exam.maxAttempts,
+    timeLimitMinutes: exam.timeLimitMinutes,
+    totalPreguntas: Number(totalPreguntas),
+    intentoEnCurso: enCurso?.id ?? null,
+    intentos: attempts
+      .filter((a) => a.status === "submitted")
+      .map((a) => ({
+        id: a.id,
+        attemptNumber: a.attemptNumber,
+        submittedAt: a.submittedAt,
+        scorePct: a.score === null ? null : Number(a.score),
+        passed: a.passed,
+      })),
+    puedeIniciar: enCurso !== null || eleg.puedeIniciar,
+    desbloqueaA: eleg.desbloqueaA,
   };
 }
