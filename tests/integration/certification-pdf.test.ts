@@ -1,0 +1,65 @@
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import {
+  user, courses, enrollments, sessionAttendance, classSessions,
+  exams, questions, questionOptions,
+  examAttempts, examAttemptQuestions, examAttemptAnswers, certificates,
+} from "@/db/schema";
+import { deleteObject } from "@/lib/r2";
+
+let enrollmentId: string;
+let claveSubida: string | null = null;
+
+beforeEach(async () => {
+  await db.delete(certificates);
+  await db.delete(examAttemptAnswers);
+  await db.delete(examAttemptQuestions);
+  await db.delete(examAttempts);
+  await db.delete(questionOptions);
+  await db.delete(questions);
+  await db.delete(exams);
+  await db.delete(sessionAttendance);
+  await db.delete(enrollments);
+  await db.delete(classSessions);
+  await db.delete(courses);
+  await db.delete(user);
+  if (claveSubida) {
+    await deleteObject(claveSubida).catch(() => {});
+    claveSubida = null;
+  }
+
+  const [prof] = await db.insert(user).values({
+    id: crypto.randomUUID(), name: "Prof", email: "p@test.pe", emailVerified: true, role: "instructor",
+  }).returning();
+  const [alumno] = await db.insert(user).values({
+    id: crypto.randomUUID(), name: "Alumno", email: "a@test.pe", emailVerified: true, role: "student",
+  }).returning();
+  const [c] = await db.insert(courses).values({
+    instructorId: prof.id, slug: "curso-x", title: "Curso X", priceCents: 100,
+  }).returning();
+  const [e] = await db.insert(enrollments).values({
+    userId: alumno.id, courseId: c.id, status: "active",
+  }).returning();
+  enrollmentId = e.id;
+});
+
+describe("generarYSubirPdf", () => {
+  it("genera un PDF y devuelve una key de R2", async () => {
+    const { generarYSubirPdf } = await import("@/modules/certification/pdf");
+
+    const key = await generarYSubirPdf({
+      code: "AB23-CD45",
+      studentName: "Alumno",
+      courseTitle: "Curso X",
+      instructorName: "Prof",
+      academyName: "Academia Demo",
+      hours: 10,
+      finalScore: 90,
+      issuedAt: new Date(),
+    });
+
+    expect(key).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
+    claveSubida = key;
+  });
+});
