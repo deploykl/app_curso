@@ -14,6 +14,7 @@ import {
   evaluarElegibilidad, examSettingsSchema, questionInputSchema,
 } from "./service";
 import { cargarIntentoPropio } from "./queries";
+import { cerrarIntento } from "./grading";
 
 /** Carga el curso comprobando que quien llama puede gestionarlo. */
 async function loadOwnedCourse(userId: string, role: string, courseId: string) {
@@ -304,4 +305,15 @@ export async function responder(
 
   // Sin revalidatePath a propósito: revalidar re-renderizaría el examen a mitad.
   // Y sin valor de retorno: isCorrect no viaja al cliente.
+}
+
+export async function enviarIntento(attemptId: string): Promise<void> {
+  const u = await requireUser();
+  const ctx = await cargarIntentoPropio(u.id, attemptId);
+  if (!ctx) throw new Error("Intento no encontrado.");
+
+  await cerrarIntento(attemptId);
+
+  revalidatePath(`/curso/${ctx.courseSlug}/examen`);
+  revalidatePath(`/curso/${ctx.courseSlug}/examen/${attemptId}/resultado`);
 }

@@ -381,3 +381,115 @@ export async function getIntentoParaResolver(
     }),
   };
 }
+
+export interface OpcionResultado {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ResultadoPregunta {
+  id: string;
+  numero: number;
+  promptMd: string;
+  points: number;
+  explanationMd: string | null;
+  opciones: OpcionResultado[];
+  seleccionadaId: string | null;
+  acerto: boolean;
+}
+
+export interface ResultadoIntento {
+  attemptId: string;
+  courseSlug: string;
+  courseTitle: string;
+  examTitle: string;
+  scorePct: number;
+  passed: boolean;
+  passingScore: number;
+  submittedAt: Date;
+  preguntas: ResultadoPregunta[];
+}
+
+/**
+ * Resultados de un intento ya enviado. Aquí sí viajan isCorrect y la explicación:
+ * el intento está cerrado y la nota, calculada.
+ */
+export async function getResultado(
+  userId: string,
+  attemptId: string
+): Promise<ResultadoIntento | null> {
+  const ctx = await cargarIntentoPropio(userId, attemptId);
+  if (!ctx) return null;
+  if (ctx.status !== "submitted" || ctx.submittedAt === null) return null;
+
+  const filas = await db
+    .select({
+      id: questions.id,
+      promptMd: questions.promptMd,
+      explanationMd: questions.explanationMd,
+      points: questions.points,
+    })
+    .from(examAttemptQuestions)
+    .innerJoin(questions, eq(questions.id, examAttemptQuestions.questionId))
+    .where(eq(examAttemptQuestions.attemptId, attemptId))
+    .orderBy(asc(examAttemptQuestions.orderIndex));
+
+  const questionIds = filas.map((f) => f.id);
+
+  const opciones = questionIds.length
+    ? await db
+        .select({
+          id: questionOptions.id,
+          questionId: questionOptions.questionId,
+          text: questionOptions.text,
+          isCorrect: questionOptions.isCorrect,
+        })
+        .from(questionOptions)
+        .where(inArray(questionOptions.questionId, questionIds))
+        .orderBy(asc(questionOptions.orderIndex))
+    : [];
+
+  const respuestas = questionIds.length
+    ? await db
+        .select({
+          questionId: examAttemptAnswers.questionId,
+          selectedOptionId: examAttemptAnswers.selectedOptionId,
+          isCorrect: examAttemptAnswers.isCorrect,
+        })
+        .from(examAttemptAnswers)
+        .where(eq(examAttemptAnswers.attemptId, attemptId))
+    : [];
+  const porPreguntaRespuesta = new Map(respuestas.map((r) => [r.questionId, r]));
+
+  const porPreguntaOpciones = new Map<string, OpcionResultado[]>();
+  for (const o of opciones) {
+    const lista = porPreguntaOpciones.get(o.questionId) ?? [];
+    lista.push({ id: o.id, text: o.text, isCorrect: o.isCorrect });
+    porPreguntaOpciones.set(o.questionId, lista);
+  }
+
+  return {
+    attemptId: ctx.attemptId,
+    courseSlug: ctx.courseSlug,
+    courseTitle: ctx.courseTitle,
+    examTitle: ctx.examTitle,
+    scorePct: ctx.score === null ? 0 : Number(ctx.score),
+    passed: ctx.passed ?? false,
+    passingScore: ctx.passingScore,
+    submittedAt: ctx.submittedAt,
+    preguntas: filas.map((f, i) => {
+      const r = porPreguntaRespuesta.get(f.id);
+      return {
+        id: f.id,
+        numero: i + 1,
+        promptMd: f.promptMd,
+        points: f.points,
+        explanationMd: f.explanationMd,
+        opciones: porPreguntaOpciones.get(f.id) ?? [],
+        seleccionadaId: r?.selectedOptionId ?? null,
+        acerto: r?.isCorrect ?? false,
+      };
+    }),
+  };
+}
