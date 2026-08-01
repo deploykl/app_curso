@@ -54,6 +54,9 @@ describe("getCertificadoPublico", () => {
       expect(r!.courseTitle).toBe("Curso X");
       expect(r!.finalScore).toBe(90);
       expect(JSON.stringify(r)).not.toMatch(/@/); // sin email
+      expect(Object.keys(r!).sort()).toEqual(
+        ["academyName", "courseTitle", "estado", "finalScore", "hours", "instructorName", "issuedAt", "studentName"].sort()
+      );
     }
   });
 
@@ -68,6 +71,7 @@ describe("getCertificadoPublico", () => {
     expect(r!.estado).toBe("revocado");
     if (r!.estado === "revocado") {
       expect(r!.revokedAt).toEqual(new Date("2026-05-01T00:00:00Z"));
+      expect(Object.keys(r!).sort()).toEqual(["estado", "revokedAt"].sort());
     }
   });
 

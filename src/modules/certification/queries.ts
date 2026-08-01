@@ -13,7 +13,7 @@ export type CertificadoPublico =
       finalScore: number;
       issuedAt: Date;
     }
-  | { estado: "revocado"; revokedAt: Date; revokeReason: string | null };
+  | { estado: "revocado"; revokedAt: Date };
 
 /**
  * Verificación pública por código. No selecciona email ni ninguna columna
@@ -30,7 +30,6 @@ export async function getCertificadoPublico(code: string): Promise<CertificadoPu
       finalScore: certificates.finalScore,
       issuedAt: certificates.issuedAt,
       revokedAt: certificates.revokedAt,
-      revokeReason: certificates.revokeReason,
     })
     .from(certificates)
     .where(eq(certificates.code, code))
@@ -38,7 +37,7 @@ export async function getCertificadoPublico(code: string): Promise<CertificadoPu
   if (!row) return null;
 
   if (row.revokedAt) {
-    return { estado: "revocado", revokedAt: row.revokedAt, revokeReason: row.revokeReason };
+    return { estado: "revocado", revokedAt: row.revokedAt };
   }
 
   return {
