@@ -51,6 +51,14 @@ describe("daysUntilLabel", () => {
   it("dice Faltan N días para más adelante", () => {
     expect(daysUntilLabel(new Date("2026-08-05T12:00:00Z"), now)).toBe("Faltan 4 días");
   });
+
+  it("usa el día calendario de Lima, no el de la TZ del proceso", () => {
+    // now = 2026-08-01T12:00:00Z -> 07:00 del 1/8 en Lima (UTC-5).
+    // startsAt = 2026-08-02T03:00:00Z -> 22:00 del 1/8 en Lima: mismo día calendario en Lima,
+    // pero un día distinto en UTC. Si la función usara la TZ del proceso (UTC en CI),
+    // esto daría "Mañana" en vez de "Hoy".
+    expect(daysUntilLabel(new Date("2026-08-02T03:00:00Z"), now)).toBe("Hoy");
+  });
 });
 
 describe("attendanceButtonLabel", () => {

@@ -1,4 +1,4 @@
-import type { SessionState } from "@/lib/datetime";
+import { LIMA, type SessionState } from "@/lib/datetime";
 
 export function computeProgress(total: number, attended: number): number {
   if (total <= 0) return 0;
@@ -29,11 +29,21 @@ export function pickNextSession<T extends AgendaSessionRef>(
   return sessions.slice().sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())[0];
 }
 
-export function daysUntilLabel(startsAt: Date, now: Date = new Date()): string {
-  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startDate = new Date(startsAt.getFullYear(), startsAt.getMonth(), startsAt.getDate());
+const limaDayFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: LIMA, year: "numeric", month: "2-digit", day: "2-digit",
+});
 
-  const diffMs = startDate.getTime() - nowDate.getTime();
+/** Medianoche UTC del día calendario que `date` representa en la zona America/Lima. */
+function limaCalendarDayUtcMidnight(date: Date): number {
+  const parts = Object.fromEntries(limaDayFormatter.formatToParts(date).map((p) => [p.type, p.value]));
+  return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+}
+
+export function daysUntilLabel(startsAt: Date, now: Date = new Date()): string {
+  const nowDay = limaCalendarDayUtcMidnight(now);
+  const startDay = limaCalendarDayUtcMidnight(startsAt);
+
+  const diffMs = startDay - nowDay;
   const days = Math.round(diffMs / 86_400_000);
 
   if (days <= 0) return "Hoy";
