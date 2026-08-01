@@ -11,7 +11,10 @@ export default async function AdminPagosPage() {
         <p className="text-muted-foreground">No hay comprobantes por revisar.</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {proofs.map((p) => <AdminProofReview key={p.proofId} proof={p} />)}
+          {proofs.map((p) => {
+            const { proofFileKey, ...clientProof } = p;
+            return <AdminProofReview key={p.proofId} proof={clientProof} />;
+          })}
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ import type { PendingProofRow } from "@/modules/billing/queries";
 import { formatPEN } from "@/lib/money";
 import { formatLima } from "@/lib/datetime";
 
-export function AdminProofReview({ proof }: { proof: PendingProofRow }) {
+export function AdminProofReview({ proof }: { proof: Omit<PendingProofRow, "proofFileKey"> }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [reason, setReason] = useState("");
