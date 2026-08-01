@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
+import type { Role } from "@/modules/auth/guards";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +22,11 @@ export default function LoginPage() {
 
     setLoading(false);
     if (res.error) return setError(res.error.message ?? "No pudimos iniciar sesión.");
-    router.push("/mi-aprendizaje");
+
+    const role = (res.data?.user as { role?: Role } | undefined)?.role;
+    if (role === "admin") router.push("/admin/pagos");
+    else if (role === "instructor") router.push("/instructor");
+    else router.push("/mi-aprendizaje");
   }
 
   return (
