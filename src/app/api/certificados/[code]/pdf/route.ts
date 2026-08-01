@@ -22,17 +22,22 @@ export async function GET(
 
   let pdfKey = cert.pdfKey;
   if (!pdfKey) {
-    pdfKey = await generarYSubirPdf({
-      code: cert.code,
-      studentName: cert.studentName,
-      courseTitle: cert.courseTitle,
-      instructorName: cert.instructorName,
-      academyName: cert.academyName,
-      hours: cert.hours === null ? null : Number(cert.hours),
-      finalScore: Number(cert.finalScore),
-      issuedAt: cert.issuedAt,
-    });
-    await db.update(certificates).set({ pdfKey }).where(eq(certificates.id, cert.id));
+    try {
+      pdfKey = await generarYSubirPdf({
+        code: cert.code,
+        studentName: cert.studentName,
+        courseTitle: cert.courseTitle,
+        instructorName: cert.instructorName,
+        academyName: cert.academyName,
+        hours: cert.hours === null ? null : Number(cert.hours),
+        finalScore: Number(cert.finalScore),
+        issuedAt: cert.issuedAt,
+      });
+      await db.update(certificates).set({ pdfKey }).where(eq(certificates.id, cert.id));
+    } catch (err) {
+      console.error("Error sirviendo el PDF del certificado:", code, err);
+      return new Response("Error al generar el certificado.", { status: 500 });
+    }
   }
 
   const url = await presignGet(pdfKey);

@@ -55,18 +55,23 @@ function documento(c: CertificadoParaPdf) {
 
 /** Renderiza el PDF, lo sube a R2 y devuelve la key. No persiste `pdfKey` en la BD: eso lo hace el llamador. */
 export async function generarYSubirPdf(c: CertificadoParaPdf): Promise<string> {
-  const doc = await documento(c);
-  const buffer = await renderToBuffer(doc);
-  const key = `certificados/${c.code}/pdf/certificado.pdf`;
+  try {
+    const doc = await documento(c);
+    const buffer = await renderToBuffer(doc);
+    const key = `certificados/${c.code}/pdf/certificado.pdf`;
 
-  await r2.send(
-    new PutObjectCommand({
-      Bucket: env.R2_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: "application/pdf",
-    })
-  );
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: env.R2_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: "application/pdf",
+      })
+    );
 
-  return key;
+    return key;
+  } catch (err) {
+    console.error("Error generando/subiendo el PDF del certificado:", c.code, err);
+    throw err;
+  }
 }

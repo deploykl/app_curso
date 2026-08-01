@@ -63,3 +63,28 @@ describe("generarYSubirPdf", () => {
     claveSubida = key;
   });
 });
+
+describe("GET /api/certificados/[code]/pdf", () => {
+  it("devuelve 404 para un certificado revocado sin tocar R2", async () => {
+    const [cert] = await db.insert(certificates).values({
+      enrollmentId,
+      code: "REVOKED-1",
+      studentName: "Alumno",
+      courseTitle: "Curso X",
+      instructorName: "Prof",
+      academyName: "Academia Demo",
+      hours: "10",
+      finalScore: "90",
+      revokedAt: new Date(),
+      revokeReason: "prueba",
+    }).returning();
+
+    const { GET } = await import("@/app/api/certificados/[code]/pdf/route");
+
+    const res = await GET(new Request(`http://localhost/api/certificados/${cert.code}/pdf`), {
+      params: Promise.resolve({ code: cert.code }),
+    });
+
+    expect(res.status).toBe(404);
+  });
+});
