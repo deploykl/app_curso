@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { expireStaleOrders } from "@/modules/billing/actions";
+import { expireStaleOrders } from "@/modules/billing/jobs";
 
 export async function GET(req: Request) {
   const auth = req.headers.get("authorization");

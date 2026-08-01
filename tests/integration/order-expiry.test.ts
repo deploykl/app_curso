@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { user, courses, orders, orderItems, paymentProofs } from "@/db/schema";
-import { expireStaleOrders } from "@/modules/billing/actions";
+import { expireStaleOrders } from "@/modules/billing/jobs";
 
 let studentId: string;
 let cursoId: string;
