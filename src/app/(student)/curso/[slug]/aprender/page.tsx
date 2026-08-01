@@ -26,7 +26,17 @@ export default async function AgendaCursoPage({ params }: { params: Promise<{ sl
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{agenda.title}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-semibold">{agenda.title}</h1>
+        {agenda.tieneExamenPublicado && (
+          <Link
+            href={`/curso/${slug}/examen`}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
+            Rendir el examen
+          </Link>
+        )}
+      </div>
       <div className="flex flex-col gap-3">
         {agenda.sessions.map((s) => (
           <Link

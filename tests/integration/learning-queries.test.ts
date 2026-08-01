@@ -93,6 +93,15 @@ describe("getCourseAgenda", () => {
   it("devuelve null si el curso no existe", async () => {
     expect(await getCourseAgenda(alumnoId, "no-existe")).toBeNull();
   });
+
+  it("marca tieneExamenPublicado cuando el curso tiene examen publicado", async () => {
+    const { exams } = await import("@/db/schema");
+    await db.insert(exams).values({
+      courseId: cursoId, title: "Examen final", isPublished: true,
+    });
+    const agenda = await getCourseAgenda(alumnoId, "curso-x");
+    expect(agenda!.tieneExamenPublicado).toBe(true);
+  });
 });
 
 describe("getSessionDetail", () => {

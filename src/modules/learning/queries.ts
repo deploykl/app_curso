@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, classSessions, enrollments, sessionAttendance, sessionMaterials } from "@/db/schema";
+import { courses, classSessions, enrollments, sessionAttendance, sessionMaterials, exams } from "@/db/schema";
 import { assertEnrolled } from "@/modules/auth/guards";
 import { sessionState, type SessionState } from "@/lib/datetime";
 import { pickNextSession } from "./service";
@@ -74,6 +74,7 @@ export interface CourseAgenda {
   courseId: string;
   slug: string;
   title: string;
+  tieneExamenPublicado: boolean;
   sessions: AgendaSession[];
 }
 
@@ -117,10 +118,17 @@ export async function getCourseAgenda(userId: string, slug: string): Promise<Cou
     materialCounts.set(m.classSessionId, (materialCounts.get(m.classSessionId) ?? 0) + 1);
   }
 
+  const examenPublicado = await db
+    .select({ id: exams.id })
+    .from(exams)
+    .where(and(eq(exams.courseId, course.id), eq(exams.isPublished, true)))
+    .limit(1);
+
   return {
     courseId: course.id,
     slug: course.slug,
     title: course.title,
+    tieneExamenPublicado: examenPublicado.length > 0,
     sessions: rawSessions.map((s) => ({
       ...s,
       materialCount: materialCounts.get(s.id) ?? 0,
