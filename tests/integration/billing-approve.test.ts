@@ -19,8 +19,12 @@ vi.mock("@/lib/turnstile", () => ({
   verifyTurnstile: vi.fn(async () => true),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/modules/notifications/mailer", () => ({
+  sendEmail: vi.fn(async () => {}),
+}));
 
 const { aprobarPago, rechazarPago, submitPaymentProof } = await import("@/modules/billing/actions");
+const { sendEmail } = await import("@/modules/notifications/mailer");
 
 async function setupOrder() {
   await db.delete(instructorEarnings);
@@ -118,6 +122,17 @@ describe("aprobarPago", () => {
 
     const earningsRows = await db.select().from(instructorEarnings);
     expect(earningsRows).toHaveLength(1);
+  });
+
+  it("no reenvía el email de aprobación al reaprobar una orden ya pagada", async () => {
+    vi.mocked(sendEmail).mockClear();
+
+    await aprobarPago(orderId);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sendEmail).mock.calls[0][0]).toMatchObject({ template: "order-approved" });
+
+    await aprobarPago(orderId);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
   });
 
   it("es atómica: si falla a mitad, no queda nada aplicado", async () => {

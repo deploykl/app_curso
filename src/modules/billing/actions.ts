@@ -1,5 +1,5 @@
 "use server";
-import { eq, and, sql as sqlOp } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
@@ -15,17 +15,6 @@ import { sendEmail } from "@/modules/notifications/mailer";
 import { paymentProofReceivedTemplate } from "@/modules/notifications/templates/payment-proof-received";
 import { orderApprovedTemplate } from "@/modules/notifications/templates/order-approved";
 import { orderRejectedTemplate } from "@/modules/notifications/templates/order-rejected";
-
-export async function expireStaleOrders(now: Date = new Date()): Promise<number> {
-  const result = await db.execute<{ id: string }>(sqlOp`
-    update orders set status = 'expired'
-    where status = 'pending'
-      and expires_at < ${now.toISOString()}
-      and id not in (select order_id from payment_proofs where status = 'pending')
-    returning id
-  `);
-  return result.length;
-}
 
 export async function crearOrden(courseId: string, couponCode?: string) {
   const u = await requireUser();
@@ -114,6 +103,13 @@ export async function submitPaymentProof(orderId: string, raw: unknown) {
   if (!order || order.userId !== u.id) throw new Error("Orden no encontrada.");
   if (order.status !== "pending") throw new Error("Esta orden ya no admite comprobantes.");
 
+  const [existingPending] = await db.select().from(paymentProofs)
+    .where(and(eq(paymentProofs.orderId, orderId), eq(paymentProofs.status, "pending")))
+    .limit(1);
+  if (existingPending) {
+    throw new Error("Ya hay un comprobante pendiente de revisión para esta orden.");
+  }
+
   await db.insert(paymentProofs).values({
     orderId,
     method: input.method,
@@ -136,10 +132,10 @@ export async function submitPaymentProof(orderId: string, raw: unknown) {
 export async function aprobarPago(orderId: string) {
   const admin = await assertRole(["admin"]);
 
-  await db.transaction(async (tx) => {
+  const { alreadyPaid } = await db.transaction(async (tx) => {
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
     if (!order) throw new Error("Orden no encontrada.");
-    if (order.status === "paid") return; // idempotente: ya se aprobó antes
+    if (order.status === "paid") return { alreadyPaid: true }; // idempotente: ya se aprobó antes
 
     const [proof] = await tx.select().from(paymentProofs)
       .where(and(eq(paymentProofs.orderId, orderId), eq(paymentProofs.status, "pending")))
@@ -178,14 +174,22 @@ export async function aprobarPago(orderId: string) {
     // referencia directa orders -> coupon en el esquema, la redención
     // detallada (coupon_redemptions) se registra en crearOrden cuando
     // aplica, no aquí (Fase 6 agregará la UI de cupones que ejercitará esto).
+
+    return { alreadyPaid: false };
   });
 
   revalidatePath("/admin/pagos");
 
+  // Solo notificamos por correo si esta llamada fue la que efectivamente
+  // aprobó la orden. Si la transacción hizo el early-return idempotente
+  // (orden ya estaba "paid"), no reenviamos el email de aprobación.
+  if (alreadyPaid) return;
+
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
+  if (!order || !item) return;
   const [buyer] = await db.select().from(user).where(eq(user.id, order.userId)).limit(1);
-  if (order && item && buyer) {
+  if (buyer) {
     const { subject, html } = orderApprovedTemplate({ name: buyer.name, courseTitle: item.titleSnapshot });
     await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-approved", subject, html });
   }
