@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -8,6 +8,11 @@ import {
   instructorProfiles,
 } from "@/db/schema";
 import { emitirCertificado } from "@/modules/certification/issuance";
+
+vi.mock("@/modules/certification/service", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/modules/certification/service")>();
+  return { ...actual, generarCodigo: vi.fn(actual.generarCodigo) };
+});
 
 let profId: string;
 let alumnoId: string;
@@ -83,5 +88,49 @@ describe("emitirCertificado", () => {
     const rows = await db.select().from(certificates)
       .where(eq(certificates.enrollmentId, enrollmentId));
     expect(rows).toHaveLength(1);
+  });
+
+  it("se recupera de una colisión real de código reintentando con un savepoint", async () => {
+    // Segunda inscripción, distinta de `enrollmentId`, para poder ocupar un
+    // código sin chocar con el UNIQUE de `enrollment_id`. Usa otro curso
+    // porque `enrollments` tiene un UNIQUE en (user_id, course_id).
+    const [otroCurso] = await db.insert(courses).values({
+      instructorId: profId, slug: "excel-avanzado", title: "Excel avanzado",
+      priceCents: 100, estimatedHours: "8.00",
+    }).returning();
+    const [otraInscripcion] = await db.insert(enrollments).values({
+      userId: alumnoId, courseId: otroCurso.id, status: "active",
+    }).returning();
+
+    const codigoYaUsado = "AAAA-1111";
+    const codigoNuevo = "BBBB-2222";
+    await db.insert(certificates).values({
+      enrollmentId: otraInscripcion.id,
+      code: codigoYaUsado,
+      studentName: "Otro Alumno",
+      courseTitle: "Excel desde cero",
+      instructorName: "Ana Torres",
+      academyName: "Academia Test",
+      hours: "12.50",
+      finalScore: "80.00",
+    });
+
+    const { generarCodigo } = await import("@/modules/certification/service");
+    vi.mocked(generarCodigo)
+      .mockReturnValueOnce(codigoYaUsado)
+      .mockReturnValueOnce(codigoNuevo);
+
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, enrollmentId, 87.5);
+    });
+
+    const [cert] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+    expect(cert).toBeDefined();
+    expect(cert.code).toBe(codigoNuevo);
+
+    const [certOriginal] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, otraInscripcion.id));
+    expect(certOriginal.code).toBe(codigoYaUsado);
   });
 });

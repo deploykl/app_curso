@@ -5,6 +5,7 @@ import {
   user, courses, enrollments, sessionAttendance, classSessions,
   exams, questions, questionOptions,
   examAttempts, examAttemptQuestions, examAttemptAnswers,
+  instructorProfiles,
 } from "@/db/schema";
 
 let profId: string;
@@ -64,6 +65,10 @@ beforeEach(async () => {
 
   profId = (await mk("Prof", "p@test.pe", "instructor")).id;
   otroProfId = (await mk("Otro", "o@test.pe", "instructor")).id;
+  await db.insert(instructorProfiles).values([
+    { userId: profId, displayName: "Prof", status: "approved" },
+    { userId: otroProfId, displayName: "Otro", status: "approved" },
+  ]);
 
   const [c] = await db.insert(courses).values({
     instructorId: profId, slug: "curso-examen", title: "Curso Examen", priceCents: 100,
