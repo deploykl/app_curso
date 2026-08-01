@@ -14,7 +14,11 @@ describe("sessionState", () => {
   const startsAt = new Date("2026-08-15T15:00:00Z");
 
   it("es 'upcoming' antes de empezar", () => {
-    expect(sessionState(startsAt, 60, new Date("2026-08-15T14:59:00Z"))).toBe("upcoming");
+    expect(sessionState(startsAt, 60, new Date("2026-08-15T14:00:00Z"))).toBe("upcoming");
+  });
+
+  it("es 'live' en el minuto justo antes de empezar (sin hueco de 1 minuto)", () => {
+    expect(sessionState(startsAt, 60, new Date("2026-08-15T14:59:00Z"))).toBe("live");
   });
 
   it("es 'live' durante la sesión", () => {

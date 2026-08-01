@@ -18,13 +18,10 @@ export function sessionState(
   now: Date = new Date()
 ): SessionState {
   const joinOpensAt = startsAt.getTime() - 10 * 60_000;
-  const joinClosesAt = startsAt.getTime() - 1 * 60_000;
   const sessionEndsAt = startsAt.getTime() + durationMinutes * 60_000;
   const nowTime = now.getTime();
 
   if (nowTime < joinOpensAt) return "upcoming";
-  if (nowTime < joinClosesAt) return "live";
-  if (nowTime < startsAt.getTime()) return "upcoming";
   if (nowTime <= sessionEndsAt) return "live";
   return "past";
 }
