@@ -792,11 +792,10 @@ Esperado: FALLA con `Failed to resolve import "@/modules/assessment/actions"`.
 Crea `src/modules/assessment/queries.ts`:
 
 ```ts
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, exams, questions, questionOptions } from "@/db/schema";
+import { courses, exams, questions, questionOptions, user } from "@/db/schema";
 import { canManageCourse, type Role } from "@/modules/auth/guards";
-import { user } from "@/db/schema";
 
 export interface OpcionDelBanco {
   id: string;
@@ -861,20 +860,15 @@ export async function getBancoPreguntas(
     .where(eq(questions.examId, examen.id))
     .orderBy(asc(questions.orderIndex));
 
-  const rawOptions = rawQuestions.length
+  // Una sola consulta para todas las opciones, filtrada por las preguntas de este examen.
+  const questionIds = rawQuestions.map((q) => q.id);
+  const todasLasOpciones = questionIds.length
     ? await db
         .select()
         .from(questionOptions)
-        .where(eq(questionOptions.questionId, rawQuestions[0].id))
-    : [];
-
-  // Se recogen todas las opciones del examen en una sola consulta cuando hay preguntas.
-  const todasLasOpciones = rawQuestions.length
-    ? await db
-        .select()
-        .from(questionOptions)
+        .where(inArray(questionOptions.questionId, questionIds))
         .orderBy(asc(questionOptions.orderIndex))
-    : rawOptions;
+    : [];
 
   const porPregunta = new Map<string, OpcionDelBanco[]>();
   for (const o of todasLasOpciones) {
@@ -911,26 +905,6 @@ export async function getBancoPreguntas(
   };
 }
 ```
-
-**Corrección obligatoria antes de continuar:** el bloque de arriba consulta
-`questionOptions` sin filtrar por examen, lo que traería opciones de otros cursos.
-Reemplaza las dos consultas de opciones (`rawOptions` y `todasLasOpciones`) por una sola,
-filtrada con `inArray`:
-
-```ts
-  const questionIds = rawQuestions.map((q) => q.id);
-  const todasLasOpciones = questionIds.length
-    ? await db
-        .select()
-        .from(questionOptions)
-        .where(inArray(questionOptions.questionId, questionIds))
-        .orderBy(asc(questionOptions.orderIndex))
-    : [];
-```
-
-y agrega `inArray` al import de `drizzle-orm`. Elimina por completo la variable
-`rawOptions`. El resultado final del archivo no debe contener ninguna consulta a
-`questionOptions` sin `where`.
 
 - [ ] **Step 4: Escribir `actions.ts` con el CRUD del instructor**
 
