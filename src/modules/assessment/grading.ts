@@ -4,6 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { exams, enrollments, questions, examAttempts, examAttemptQuestions, examAttemptAnswers } from "@/db/schema";
 import { calcularNota } from "./service";
+import { emitirCertificado } from "@/modules/certification/issuance";
 
 export interface ResultadoCierre {
   scorePct: number;
@@ -71,9 +72,9 @@ export async function cerrarIntento(attemptId: string): Promise<ResultadoCierre>
       })
       .where(eq(examAttempts.id, attemptId));
 
-    // FASE 5 — certificación: aquí va `if (passed) await emitirCertificado(tx, attempt.enrollmentId)`.
-    // Se deja fuera a propósito: la emisión, el código verificable y el PDF son el
-    // alcance completo de la Fase 5. La pantalla de resultados ya anuncia el certificado.
+    if (passed) {
+      await emitirCertificado(tx, attempt.enrollmentId, scorePct);
+    }
 
     return { scorePct, passed, yaEstaba: false };
   });
