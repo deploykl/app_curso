@@ -112,12 +112,12 @@ export function evaluarElegibilidad(input: ElegibilidadInput): Elegibilidad {
 // --------------------------------------------------------------------- entrada
 
 export const examSettingsSchema = z.object({
-  title: z.string().min(3).max(160),
-  passingScore: z.number().int().min(1).max(100),
-  maxAttempts: z.number().int().min(1).max(10),
-  lockoutHours: z.number().int().min(0).max(168),
-  timeLimitMinutes: z.number().int().min(1).max(480).nullable(),
-  questionsPerAttempt: z.number().int().min(1).max(200).nullable(),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres.").max(160, "El título es demasiado largo."),
+  passingScore: z.number().int().min(1, "La nota de aprobación debe ser mayor a 0.").max(100, "La nota de aprobación no puede superar 100."),
+  maxAttempts: z.number().int().min(1, "Debe permitir al menos 1 intento.").max(10, "No puede permitir más de 10 intentos."),
+  lockoutHours: z.number().int().min(0, "Las horas de bloqueo no pueden ser negativas.").max(168, "Las horas de bloqueo no pueden superar 168."),
+  timeLimitMinutes: z.number().int().min(1, "El límite de tiempo debe ser de al menos 1 minuto.").max(480, "El límite de tiempo no puede superar 480 minutos.").nullable(),
+  questionsPerAttempt: z.number().int().min(1, "Debe pedir al menos 1 pregunta por intento.").max(200, "No puede pedir más de 200 preguntas por intento.").nullable(),
   shuffleQuestions: z.boolean(),
   shuffleOptions: z.boolean(),
 });
@@ -126,13 +126,13 @@ export type ExamSettingsInput = z.infer<typeof examSettingsSchema>;
 export const questionInputSchema = z
   .object({
     type: z.enum(["mcq", "true_false"]),
-    promptMd: z.string().min(3),
+    promptMd: z.string().min(3, "El enunciado debe tener al menos 3 caracteres."),
     explanationMd: z.string().nullable(),
-    points: z.number().int().min(1).max(100),
+    points: z.number().int().min(1, "La pregunta debe valer al menos 1 punto.").max(100, "La pregunta no puede valer más de 100 puntos."),
     options: z
-      .array(z.object({ text: z.string().min(1), isCorrect: z.boolean() }))
-      .min(2)
-      .max(8),
+      .array(z.object({ text: z.string().min(1, "El texto de la opción no puede estar vacío."), isCorrect: z.boolean() }))
+      .min(2, "Debe haber al menos 2 opciones.")
+      .max(8, "No puede haber más de 8 opciones."),
   })
   .refine((q) => q.options.filter((o) => o.isCorrect).length === 1, {
     message: "Cada pregunta debe tener exactamente una opción correcta.",

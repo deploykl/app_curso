@@ -198,6 +198,42 @@ describe("eliminarPregunta", () => {
 
     await expect(acts.eliminarPregunta(otroCurso.id, q.id)).rejects.toThrow(/no pertenece/i);
   });
+
+  it("archiva (no borra) una pregunta ya respondida, y rechaza editarla", async () => {
+    await acts.guardarExamen(cursoId, CONFIG);
+    await acts.guardarPregunta(cursoId, null, PREGUNTA);
+    await acts.publicarExamen(cursoId);
+    const [q] = await db.select().from(questions);
+
+    const [alumno] = await db.insert(user).values({
+      id: crypto.randomUUID(), name: "Alumno", email: "a@test.pe", emailVerified: true, role: "student",
+    }).returning();
+    await db.insert(enrollments).values({
+      userId: alumno.id, courseId: cursoId, status: "active",
+    }).returning();
+
+    // El alumno inicia el intento, responde y envía.
+    currentUser = { id: alumno.id, role: "student" };
+    const attemptId = await acts.iniciarIntento(cursoId);
+    const [opcion] = await db
+      .select()
+      .from(questionOptions)
+      .where(eq(questionOptions.questionId, q.id));
+    await acts.responder(attemptId, q.id, opcion.id);
+    await acts.enviarIntento(attemptId);
+
+    // El instructor intenta gestionar el banco de nuevo.
+    currentUser = { id: profId, role: "instructor" };
+
+    await acts.eliminarPregunta(cursoId, q.id);
+    const [archivada] = await db.select().from(questions).where(eq(questions.id, q.id));
+    expect(archivada).toBeDefined();
+    expect(archivada.isActive).toBe(false);
+
+    await expect(
+      acts.guardarPregunta(cursoId, q.id, { ...PREGUNTA, promptMd: "Edición prohibida" })
+    ).rejects.toThrow(/ya fue respondida por alumnos/i);
+  });
 });
 
 describe("publicarExamen", () => {
