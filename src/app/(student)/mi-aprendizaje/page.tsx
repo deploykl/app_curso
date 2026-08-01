@@ -39,11 +39,15 @@ export default async function MiAprendizajePage() {
               {c.attendedSessions}/{c.totalSessions} sesiones vistas
             </p>
             {c.nextSession ? (
-              <p className="text-sm">
-                {c.nextSession.state === "live" ? "EN VIVO AHORA" : daysUntilLabel(c.nextSession.startsAt)}
-                {" — "}
-                {c.nextSession.title} ({formatLima(c.nextSession.startsAt)})
-              </p>
+              c.nextSession.state === "past" ? (
+                <p className="text-sm text-muted-foreground">Curso finalizado</p>
+              ) : (
+                <p className="text-sm">
+                  {c.nextSession.state === "live" ? "EN VIVO AHORA" : daysUntilLabel(c.nextSession.startsAt)}
+                  {" — "}
+                  {c.nextSession.title} ({formatLima(c.nextSession.startsAt)})
+                </p>
+              )
             ) : (
               <p className="text-sm text-muted-foreground">Sin sesiones programadas.</p>
             )}
