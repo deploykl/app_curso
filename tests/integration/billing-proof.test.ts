@@ -99,4 +99,15 @@ describe("submitPaymentProof", () => {
 
     await expect(submitPaymentProof(o2.id, validInput)).rejects.toThrow();
   });
+
+  it("rechaza subir un segundo comprobante mientras el primero sigue pendiente en la misma orden", async () => {
+    await submitPaymentProof(orderId, validInput);
+
+    await expect(
+      submitPaymentProof(orderId, { ...validInput, operationNumber: "OP-002" })
+    ).rejects.toThrow(/ya hay un comprobante pendiente/i);
+
+    const rows = await db.select().from(paymentProofs).where(eq(paymentProofs.orderId, orderId));
+    expect(rows).toHaveLength(1);
+  });
 });
