@@ -16,6 +16,16 @@ export default async function StudentLayout({ children }: { children: React.Reac
             <Link href="/mi-aprendizaje" className="text-muted-foreground hover:text-foreground">
               Mi aprendizaje
             </Link>
+            {(u.role === "instructor" || u.role === "admin") && (
+              <Link href="/instructor" className="text-muted-foreground hover:text-foreground">
+                Instructor
+              </Link>
+            )}
+            {u.role === "admin" && (
+              <Link href="/admin/pagos" className="text-muted-foreground hover:text-foreground">
+                Administración
+              </Link>
+            )}
             <span className="text-muted-foreground">{u.name}</span>
             <LogoutButton />
           </nav>
