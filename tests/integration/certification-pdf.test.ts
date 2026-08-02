@@ -6,12 +6,20 @@ import {
   exams, questions, questionOptions,
   examAttempts, examAttemptQuestions, examAttemptAnswers, certificates,
 } from "@/db/schema";
-import { deleteObject } from "@/lib/r2";
+
+const r2Send = vi.fn(async (_command: { input: Record<string, unknown> }) => ({}));
+
+vi.mock("@/lib/r2", () => ({
+  r2: { send: r2Send },
+  presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
+  presignPut: vi.fn(async () => "https://r2.test/put"),
+  deleteObject: vi.fn(async () => {}),
+}));
 
 let enrollmentId: string;
-let claveSubida: string | null = null;
 
 beforeEach(async () => {
+  r2Send.mockClear();
   await db.delete(certificates);
   await db.delete(examAttemptAnswers);
   await db.delete(examAttemptQuestions);
@@ -24,10 +32,6 @@ beforeEach(async () => {
   await db.delete(classSessions);
   await db.delete(courses);
   await db.delete(user);
-  if (claveSubida) {
-    await deleteObject(claveSubida).catch(() => {});
-    claveSubida = null;
-  }
 
   const [prof] = await db.insert(user).values({
     id: crypto.randomUUID(), name: "Prof", email: "p@test.pe", emailVerified: true, role: "instructor",
@@ -45,7 +49,7 @@ beforeEach(async () => {
 });
 
 describe("generarYSubirPdf", () => {
-  it("genera un PDF y devuelve una key de R2", async () => {
+  it("genera un PDF y devuelve una key de R2 (R2 mockeado, sin credenciales reales)", async () => {
     const { generarYSubirPdf } = await import("@/modules/certification/pdf");
 
     const key = await generarYSubirPdf({
@@ -60,7 +64,12 @@ describe("generarYSubirPdf", () => {
     });
 
     expect(key).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
-    claveSubida = key;
+    expect(r2Send).toHaveBeenCalledTimes(1);
+    const command = r2Send.mock.calls[0][0];
+    expect(command.input.Bucket).toBeDefined();
+    expect(command.input.Key).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
+    expect(command.input.ContentType).toBe("application/pdf");
+    expect(Buffer.isBuffer(command.input.Body)).toBe(true);
   });
 });
 
