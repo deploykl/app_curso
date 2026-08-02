@@ -37,7 +37,7 @@ export default async function AdminReembolsosPage({
         <div className="flex flex-col gap-3 rounded-md border border-border p-4">
           <div className="flex items-center justify-between">
             <span className="font-medium">
-              {orden.orderNumber} · {orden.buyerName} · {orden.courseTitle}
+              {orden.orderNumber} · {orden.buyerName} ({orden.buyerEmail}) · {orden.courseTitle}
             </span>
             {orden.status === "refunded" && <Badge variant="secondary">Reembolsada</Badge>}
             {orden.status === "paid" && <Badge>Pagada</Badge>}
