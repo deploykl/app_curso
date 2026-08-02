@@ -10,3 +10,4 @@ export async function login(page: Page, email: string, password: string) {
 
 export const PROF = { email: "prof@test.pe", password: "prof12345" };
 export const ALUMNO = { email: "alumno@test.pe", password: "alumno12345" };
+export const ADMIN = { email: "admin@test.pe", password: "admin12345" };
