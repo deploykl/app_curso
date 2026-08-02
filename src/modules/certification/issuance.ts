@@ -16,8 +16,15 @@ type Transaccion = Parameters<Parameters<typeof db.transaction>[0]>[0];
 /**
  * Crea el certificado de un intento aprobado, dentro de la MISMA transacción
  * que cierra el intento (recibe `tx`, no abre una propia). Idempotente:
- * `ON CONFLICT (enrollment_id) DO NOTHING`. El código se reintenta si choca
- * con uno ya existente (colisión de UNIQUE en `code`).
+ * `ON CONFLICT (enrollment_id)`. Si ya existe un certificado NO revocado para
+ * esa inscripción, es un no-op (`DO UPDATE ... WHERE revoked_at IS NOT NULL`
+ * hace que el UPDATE no se aplique cuando la fila existente sigue vigente).
+ * Si el certificado existente SÍ está revocado (el alumno fue reembolsado y
+ * recompró el curso — `enrollments` reutiliza la misma fila, ver fix de C2 en
+ * billing/actions.ts), se reactiva con los datos de esta nueva emisión:
+ * código nuevo, `revokedAt`/`revokeReason` a null y `pdfKey` a null para que
+ * el PDF se regenere con los datos actuales en la próxima descarga. El código
+ * se reintenta si choca con uno ya existente (colisión de UNIQUE en `code`).
  */
 export async function emitirCertificado(
   tx: Transaccion,
@@ -95,7 +102,27 @@ export async function emitirCertificado(
             hours: datos.hours,
             finalScore: scorePct.toFixed(2),
           })
-          .onConflictDoNothing({ target: certificates.enrollmentId });
+          .onConflictDoUpdate({
+            target: certificates.enrollmentId,
+            set: {
+              code,
+              issuedAt: new Date(),
+              studentName: datos.studentName,
+              courseTitle: datos.courseTitle,
+              instructorName: datos.instructorName,
+              academyName: env.ACADEMIA_NAME,
+              hours: datos.hours,
+              finalScore: scorePct.toFixed(2),
+              pdfKey: null,
+              revokedAt: null,
+              revokeReason: null,
+            },
+            // Solo reactivamos si la fila existente está revocada. Si sigue
+            // vigente (caso normal: no debería re-emitirse), la condición es
+            // falsa y Postgres deja el DO UPDATE sin efecto (no-op), igual
+            // que el DO NOTHING anterior.
+            where: sql`${certificates.revokedAt} is not null`,
+          });
       });
       return;
     } catch (err) {

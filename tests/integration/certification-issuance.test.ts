@@ -7,7 +7,7 @@ import {
   examAttempts, examAttemptQuestions, examAttemptAnswers, certificates,
   instructorProfiles,
 } from "@/db/schema";
-import { emitirCertificado } from "@/modules/certification/issuance";
+import { emitirCertificado, revocarCertificadoTx } from "@/modules/certification/issuance";
 
 vi.mock("@/modules/certification/service", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/modules/certification/service")>();
@@ -160,5 +160,66 @@ describe("emitirCertificado", () => {
       .where(eq(certificates.enrollmentId, otraInscripcion.id));
     expect(cert).toBeDefined();
     expect(cert.instructorName).toBe("Instructor Sin Perfil");
+  });
+
+  it("reactiva un certificado revocado al reemitirse para la misma inscripción (recompra tras reembolso)", async () => {
+    // Ciclo completo: emitir -> revocar (reembolso) -> recomprar y volver a
+    // aprobar reutiliza la MISMA fila de `enrollments` (fix de C2), así que
+    // `emitirCertificado` corre otra vez contra el mismo `enrollmentId` que
+    // ya tiene una fila en `certificates` (UNIQUE en enrollment_id), ahora
+    // revocada. Debe reactivarla, no quedarse en silencio.
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, enrollmentId, 70);
+    });
+    const [certOriginal] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+    const codigoOriginal = certOriginal.code;
+
+    const resultadoRevocacion = await db.transaction(async (tx) => {
+      return revocarCertificadoTx(tx, enrollmentId, "Reembolso aprobado");
+    });
+    expect(resultadoRevocacion).not.toBeNull();
+
+    const [certRevocado] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+    expect(certRevocado.revokedAt).not.toBeNull();
+    expect(certRevocado.revokeReason).toBe("Reembolso aprobado");
+    expect(certRevocado.pdfKey).toBeNull();
+
+    // Recompra + nueva aprobación del examen: se vuelve a emitir con una
+    // nota final distinta para poder distinguir los datos "nuevos".
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, enrollmentId, 95);
+    });
+
+    const rows = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+    expect(rows).toHaveLength(1);
+    const [certReactivado] = rows;
+    expect(certReactivado.revokedAt).toBeNull();
+    expect(certReactivado.revokeReason).toBeNull();
+    expect(certReactivado.pdfKey).toBeNull();
+    expect(Number(certReactivado.finalScore)).toBe(95);
+    expect(certReactivado.code).toMatch(/^[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+    expect(certReactivado.code).not.toBe(codigoOriginal);
+  });
+
+  it("no toca un certificado vigente (no revocado): la reemisión sigue siendo un no-op", async () => {
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, enrollmentId, 87.5);
+    });
+    const [antes] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+
+    // Intento de reemisión con datos distintos: como el certificado sigue
+    // vigente (no revocado), no debe sobrescribirse.
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, enrollmentId, 100);
+    });
+
+    const [despues] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, enrollmentId));
+    expect(despues.code).toBe(antes.code);
+    expect(Number(despues.finalScore)).toBe(87.5);
   });
 });
