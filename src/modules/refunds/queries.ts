@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, orderItems, user, enrollments } from "@/db/schema";
 
@@ -42,7 +42,7 @@ export async function buscarOrdenParaReembolso(query: string): Promise<OrdenPara
     .innerJoin(user, eq(user.id, orders.userId))
     .leftJoin(enrollments, eq(enrollments.orderId, orders.id))
     .where(condicion)
-    .orderBy(desc(orders.paidAt))
+    .orderBy(sql`${orders.paidAt} desc nulls last`, desc(orders.createdAt))
     .limit(1);
 
   return row ?? null;
