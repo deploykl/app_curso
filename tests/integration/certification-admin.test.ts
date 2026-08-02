@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -62,6 +62,21 @@ beforeEach(async () => {
     instructorName: "Prof", academyName: "Academia Demo", finalScore: "90.00",
   }).returning();
   certificateId = cert.id;
+});
+
+afterAll(async () => {
+  await db.delete(certificates);
+  await db.delete(examAttemptAnswers);
+  await db.delete(examAttemptQuestions);
+  await db.delete(examAttempts);
+  await db.delete(questionOptions);
+  await db.delete(questions);
+  await db.delete(exams);
+  await db.delete(sessionAttendance);
+  await db.delete(enrollments);
+  await db.delete(classSessions);
+  await db.delete(courses);
+  await db.delete(user);
 });
 
 describe("listarCertificados", () => {

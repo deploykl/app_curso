@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -52,6 +52,13 @@ beforeEach(async () => {
     userId: alumno.id, courseId: c2.id, status: "active",
   }).returning();
   enrollmentSinCertId = e2.id;
+});
+
+afterAll(async () => {
+  await db.delete(certificates);
+  await db.delete(enrollments);
+  await db.delete(courses);
+  await db.delete(user);
 });
 
 describe("revocarCertificadoTx", () => {
