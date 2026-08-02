@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
-  user, courses, enrollments, certificates,
+  user, courses, enrollments, certificates, orders, orderItems,
 } from "@/db/schema";
 
 vi.mock("@/lib/r2", () => ({
@@ -17,7 +17,9 @@ let certificateId: string;
 
 beforeEach(async () => {
   await db.delete(certificates);
+  await db.delete(orderItems);
   await db.delete(enrollments);
+  await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
 
@@ -56,7 +58,9 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await db.delete(certificates);
+  await db.delete(orderItems);
   await db.delete(enrollments);
+  await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
 });

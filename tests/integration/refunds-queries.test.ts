@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { db } from "@/db";
-import { user, courses, orders, orderItems } from "@/db/schema";
+import { user, courses, orders, orderItems, enrollments } from "@/db/schema";
 import { buscarOrdenParaReembolso } from "@/modules/refunds/queries";
 
 let studentId: string;
@@ -8,6 +8,7 @@ let orderId: string;
 
 beforeEach(async () => {
   await db.delete(orderItems);
+  await db.delete(enrollments);
   await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
@@ -35,6 +36,14 @@ beforeEach(async () => {
     orderId: o.id, courseId: c.id, instructorId: prof.id, titleSnapshot: "Curso a Buscar",
     unitPriceCents: 10000, commissionRate: "30.00", commissionCents: 3000, netCents: 7000,
   });
+});
+
+afterAll(async () => {
+  await db.delete(orderItems);
+  await db.delete(enrollments);
+  await db.delete(orders);
+  await db.delete(courses);
+  await db.delete(user);
 });
 
 describe("buscarOrdenParaReembolso", () => {
