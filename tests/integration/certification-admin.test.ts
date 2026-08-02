@@ -13,6 +13,11 @@ vi.mock("@/modules/auth/session", () => ({
   assertRole: vi.fn(async () => ({ ...currentUser, name: "Admin" })),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/r2", () => ({
+  presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
+  presignPut: vi.fn(async () => "https://r2.test/put"),
+  deleteObject: vi.fn(async () => {}),
+}));
 
 const acts = await import("@/modules/certification/actions");
 const qs = await import("@/modules/certification/queries");
@@ -82,5 +87,22 @@ describe("revocarCertificado", () => {
 
   it("rechaza un certificado inexistente", async () => {
     await expect(acts.revocarCertificado(crypto.randomUUID(), "Motivo")).rejects.toThrow(/no encontrado/i);
+  });
+
+  it("borra el pdfKey al revocar un certificado que ya tenía PDF generado", async () => {
+    // Simula que ya se había generado y subido un PDF antes de la
+    // revocación (no invocamos R2 real; `deleteObject` está mockeado).
+    await db.update(certificates)
+      .set({ pdfKey: `certificados/AB23-CD45/pdf/certificado.pdf` })
+      .where(eq(certificates.id, certificateId));
+
+    await acts.revocarCertificado(certificateId, "Reembolso aprobado");
+
+    const [cert] = await db.select().from(certificates).where(eq(certificates.id, certificateId));
+    expect(cert.pdfKey).toBeNull();
+    expect(cert.revokedAt).not.toBeNull();
+
+    const { deleteObject } = await import("@/lib/r2");
+    expect(deleteObject).toHaveBeenCalledWith("certificados/AB23-CD45/pdf/certificado.pdf");
   });
 });

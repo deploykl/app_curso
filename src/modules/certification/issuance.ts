@@ -1,10 +1,15 @@
 // Sin "use server" a propósito: lo invoca cerrarIntento (grading.ts) dentro de
 // SU transacción. No es un endpoint.
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { certificates, enrollments, courses, user, instructorProfiles } from "@/db/schema";
 import { env } from "@/env";
 import { generarCodigo } from "./service";
+
+// Segundo alias de `user`: la primera fila ya usa `user` para el alumno, así
+// que el instructor necesita su propio alias para el join.
+const instructorUser = alias(user, "instructor_user");
 
 type Transaccion = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -24,25 +29,22 @@ export async function emitirCertificado(
       studentName: user.name,
       courseTitle: courses.title,
       hours: courses.estimatedHours,
-      instructorId: courses.instructorId,
+      // El perfil del instructor es opcional en todo el repo (ver
+      // catalog/queries.ts, billing/actions.ts): si no tiene fila en
+      // `instructorProfiles`, o no tiene `displayName`, se cae al `name` de
+      // su cuenta de usuario en vez de fallar. La emisión del certificado
+      // nunca debe revertir el cierre del intento de examen (Fase 4) por un
+      // perfil de instructor incompleto.
+      instructorName: sql<string>`coalesce(${instructorProfiles.displayName}, ${instructorUser.name})`,
     })
     .from(enrollments)
     .innerJoin(user, eq(user.id, enrollments.userId))
     .innerJoin(courses, eq(courses.id, enrollments.courseId))
+    .innerJoin(instructorUser, eq(instructorUser.id, courses.instructorId))
+    .leftJoin(instructorProfiles, eq(instructorProfiles.userId, courses.instructorId))
     .where(eq(enrollments.id, enrollmentId))
     .limit(1);
   if (!datos) throw new Error("Inscripción no encontrada al emitir el certificado.");
-
-  const [prof] = await tx
-    .select({ displayName: instructorProfiles.displayName })
-    .from(instructorProfiles)
-    .where(eq(instructorProfiles.userId, datos.instructorId))
-    .limit(1);
-  if (!prof?.displayName) {
-    throw new Error(
-      "El instructor no tiene un perfil configurado; no se puede emitir el certificado."
-    );
-  }
 
   // drizzle-orm (postgres-js) envuelve el error del driver en un
   // DrizzleQueryError y expone el original en `.cause` (ver pg-core/session.ts),
@@ -88,7 +90,7 @@ export async function emitirCertificado(
             code,
             studentName: datos.studentName,
             courseTitle: datos.courseTitle,
-            instructorName: prof.displayName,
+            instructorName: datos.instructorName,
             academyName: env.ACADEMIA_NAME,
             hours: datos.hours,
             finalScore: scorePct.toFixed(2),

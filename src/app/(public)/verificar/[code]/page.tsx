@@ -2,6 +2,10 @@ import { getCertificadoPublico } from "@/modules/certification/queries";
 import { formatLima } from "@/lib/datetime";
 import { Badge } from "@/components/ui/badge";
 
+// Página pública sin autenticación que expone el nombre completo del alumno:
+// no debe ser indexada por buscadores.
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function VerificarPage({
   params,
 }: {

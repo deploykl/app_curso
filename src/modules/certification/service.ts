@@ -1,10 +1,14 @@
+import { randomInt } from "node:crypto";
+
 // Sin 0, O, 1, I, L: se leen mal en pantalla y se confunden al dictarlos por teléfono.
 const ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
 
 function bloque(longitud: number): string {
   let out = "";
   for (let i = 0; i < longitud; i++) {
-    out += ALFABETO[Math.floor(Math.random() * ALFABETO.length)];
+    // CSPRNG: el código es la única credencial de /verificar/[code] y del
+    // endpoint del PDF, ambos sin autenticación. Math.random() es predecible.
+    out += ALFABETO[randomInt(0, ALFABETO.length)];
   }
   return out;
 }

@@ -158,6 +158,47 @@ describe("enviarIntento", () => {
     currentUser = { id: otroId, role: "student" };
     await expect(acts.enviarIntento(attemptId)).rejects.toThrow(/no encontrado/i);
   });
+
+  it("cierra el intento aprobado sin lanzar cuando el instructor no tiene perfil", async () => {
+    // Regresión: emitirCertificado corría dentro de la MISMA transacción que
+    // cierra el intento; si el instructor no tenía fila en
+    // `instructorProfiles`, el cierre completo del intento se revertía.
+    const [instructorSinPerfil] = await db.insert(user).values({
+      id: crypto.randomUUID(), name: "Instructor Sin Perfil",
+      email: "sinperfil2@test.pe", emailVerified: true, role: "instructor",
+    }).returning();
+    const [cursoSinPerfil] = await db.insert(courses).values({
+      instructorId: instructorSinPerfil.id, slug: "curso-sin-perfil-envio",
+      title: "Curso sin perfil envío", priceCents: 100,
+    }).returning();
+    const [examSinPerfil] = await db.insert(exams).values({
+      courseId: cursoSinPerfil.id, title: "Examen", passingScore: 70,
+      maxAttempts: 3, lockoutHours: 24, isPublished: true, shuffleQuestions: false,
+    }).returning();
+    const [pregunta] = await db.insert(questions).values({
+      examId: examSinPerfil.id, type: "mcq", promptMd: "P1",
+      explanationMd: "Exp", points: 1, orderIndex: 0,
+    }).returning();
+    const [buena] = await db.insert(questionOptions).values({
+      questionId: pregunta.id, text: "Correcta", isCorrect: true, orderIndex: 0,
+    }).returning();
+    await db.insert(questionOptions).values({
+      questionId: pregunta.id, text: "Incorrecta", isCorrect: false, orderIndex: 1,
+    });
+    await db.insert(enrollments).values({
+      userId: alumnoId, courseId: cursoSinPerfil.id, status: "active",
+    });
+
+    currentUser = { id: alumnoId, role: "student" };
+    const attemptId = await acts.iniciarIntento(cursoSinPerfil.id);
+    await acts.responder(attemptId, pregunta.id, buena.id);
+
+    await expect(acts.enviarIntento(attemptId)).resolves.not.toThrow();
+
+    const [a] = await db.select().from(examAttempts).where(eq(examAttempts.id, attemptId));
+    expect(a.status).toBe("submitted");
+    expect(a.passed).toBe(true);
+  });
 });
 
 describe("getResultado", () => {

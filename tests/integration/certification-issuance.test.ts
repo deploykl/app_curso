@@ -133,4 +133,32 @@ describe("emitirCertificado", () => {
       .where(eq(certificates.enrollmentId, otraInscripcion.id));
     expect(certOriginal.code).toBe(codigoYaUsado);
   });
+
+  it("emite el certificado igual si el instructor no tiene fila en instructorProfiles, usando user.name como fallback", async () => {
+    // El curso de este test lo dicta un instructor SIN fila en
+    // `instructorProfiles` (a diferencia del `profId` del beforeEach, que sí
+    // tiene una). Regresión: antes esto lanzaba un error dentro de la misma
+    // transacción que cierra el intento de examen.
+    const [instructorSinPerfil] = await db.insert(user).values({
+      id: crypto.randomUUID(), name: "Instructor Sin Perfil",
+      email: "sinperfil@test.pe", emailVerified: true, role: "instructor",
+    }).returning();
+
+    const [otroCurso] = await db.insert(courses).values({
+      instructorId: instructorSinPerfil.id, slug: "curso-sin-perfil",
+      title: "Curso sin perfil", priceCents: 100, estimatedHours: "5.00",
+    }).returning();
+    const [otraInscripcion] = await db.insert(enrollments).values({
+      userId: alumnoId, courseId: otroCurso.id, status: "active",
+    }).returning();
+
+    await db.transaction(async (tx) => {
+      await emitirCertificado(tx, otraInscripcion.id, 90);
+    });
+
+    const [cert] = await db.select().from(certificates)
+      .where(eq(certificates.enrollmentId, otraInscripcion.id));
+    expect(cert).toBeDefined();
+    expect(cert.instructorName).toBe("Instructor Sin Perfil");
+  });
 });
