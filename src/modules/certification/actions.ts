@@ -27,7 +27,11 @@ export async function revocarCertificado(certificateId: string, motivo: string):
   // de vida, y el endpoint volvería a generarlo si el objeto siguiera
   // existiendo con `pdfKey` sin limpiar.
   if (resultado?.pdfKey) {
-    await deleteObject(resultado.pdfKey);
+    try {
+      await deleteObject(resultado.pdfKey);
+    } catch (err) {
+      console.error("Error borrando el PDF del certificado revocado:", resultado.pdfKey, err);
+    }
   }
 
   revalidatePath("/admin/certificados");
