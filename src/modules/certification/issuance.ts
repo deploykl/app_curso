@@ -104,3 +104,29 @@ export async function emitirCertificado(
   }
   throw new Error("No se pudo generar un código de certificado único.");
 }
+
+/**
+ * Revoca el certificado de una inscripción dentro de una transacción dada
+ * (no abre una propia). No toca R2 — el llamador debe borrar el `pdfKey`
+ * devuelto de R2 DESPUÉS de que su transacción cierre. Idempotente: si no
+ * hay certificado, o ya estaba revocado, devuelve `null` sin escribir.
+ */
+export async function revocarCertificadoTx(
+  tx: Transaccion,
+  enrollmentId: string,
+  motivo: string
+): Promise<{ pdfKey: string | null } | null> {
+  const [cert] = await tx
+    .select({ id: certificates.id, pdfKey: certificates.pdfKey, revokedAt: certificates.revokedAt })
+    .from(certificates)
+    .where(eq(certificates.enrollmentId, enrollmentId))
+    .limit(1);
+  if (!cert || cert.revokedAt) return null;
+
+  await tx
+    .update(certificates)
+    .set({ revokedAt: new Date(), revokeReason: motivo.trim(), pdfKey: null })
+    .where(eq(certificates.id, cert.id));
+
+  return { pdfKey: cert.pdfKey };
+}
