@@ -1,0 +1,1 @@
+{"nodes": [{"id": "billing_service", "label": "Billing domain service (totals, coupons, commissions, proof validation)", "file_type": "code", "source_file": "src/modules/billing/service.ts", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

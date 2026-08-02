@@ -1,0 +1,1077 @@
+{
+  "D:\\PROGRAMACION\\app_curso\\components.json": {
+    "mtime": 1785465680.8289104,
+    "ast_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6",
+    "semantic_hash": "fc5c9e9a7b93eeb2f7b4e1ce0959e4a6"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle.config.ts": {
+    "mtime": 1785466967.7250369,
+    "ast_hash": "740705cdb83d843ebdf46b1effd4cbe2",
+    "semantic_hash": "740705cdb83d843ebdf46b1effd4cbe2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\eslint.config.mjs": {
+    "mtime": 1785463766.2495658,
+    "ast_hash": "6c4307ffa009658f5c97f5629094c0c2",
+    "semantic_hash": "6c4307ffa009658f5c97f5629094c0c2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\next.config.ts": {
+    "mtime": 1785463766.250565,
+    "ast_hash": "025f4fcb6024b3524d19492cf7ce54a2",
+    "semantic_hash": "025f4fcb6024b3524d19492cf7ce54a2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\package.json": {
+    "mtime": 1785625562.7492726,
+    "ast_hash": "e8329c6038017ccb132576c11d07d08f",
+    "semantic_hash": "e8329c6038017ccb132576c11d07d08f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\playwright.config.ts": {
+    "mtime": 1785470106.7565162,
+    "ast_hash": "123401830dbb854318b318b7b2a2da78",
+    "semantic_hash": "123401830dbb854318b318b7b2a2da78"
+  },
+  "D:\\PROGRAMACION\\app_curso\\postcss.config.mjs": {
+    "mtime": 1785463766.2525651,
+    "ast_hash": "481fac0fdecd70e1821cc30b86030c1a",
+    "semantic_hash": "481fac0fdecd70e1821cc30b86030c1a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tsconfig.json": {
+    "mtime": 1785463766.26895,
+    "ast_hash": "0a2f4ed9289b65cd3feb4fb4ab3a4fcd",
+    "semantic_hash": "0a2f4ed9289b65cd3feb4fb4ab3a4fcd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\vercel.json": {
+    "mtime": 1785595852.8856857,
+    "ast_hash": "1df5252131c2717d666700ac7832a364",
+    "semantic_hash": "1df5252131c2717d666700ac7832a364"
+  },
+  "D:\\PROGRAMACION\\app_curso\\vitest.config.ts": {
+    "mtime": 1785466631.4442334,
+    "ast_hash": "22fb5fce3e47d9d2797d2704c2bb94cb",
+    "semantic_hash": "22fb5fce3e47d9d2797d2704c2bb94cb"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\0000_dusty_mandroid.sql": {
+    "mtime": 1785463766.2475562,
+    "ast_hash": "61e75e2105e4336c41f29e4200a88c9c",
+    "semantic_hash": "61e75e2105e4336c41f29e4200a88c9c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\0001_previous_naoko.sql": {
+    "mtime": 1785463766.2475562,
+    "ast_hash": "019f07655c30cb856f5d93e29578b622",
+    "semantic_hash": "019f07655c30cb856f5d93e29578b622"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\0002_conscious_thanos.sql": {
+    "mtime": 1785540515.9604282,
+    "ast_hash": "43d64794153cbea2367176e7a25d162f",
+    "semantic_hash": "43d64794153cbea2367176e7a25d162f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\meta\\0000_snapshot.json": {
+    "mtime": 1785463766.2485604,
+    "ast_hash": "f2ef916b34a85c5a87fec636026525d0",
+    "semantic_hash": "f2ef916b34a85c5a87fec636026525d0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\meta\\0001_snapshot.json": {
+    "mtime": 1785463766.2495658,
+    "ast_hash": "513f2344a0b35116f3fbcd652d442ccd",
+    "semantic_hash": "513f2344a0b35116f3fbcd652d442ccd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\meta\\0002_snapshot.json": {
+    "mtime": 1785540515.9594276,
+    "ast_hash": "7beb20b09aff36dd39f25deafd4152c5",
+    "semantic_hash": "7beb20b09aff36dd39f25deafd4152c5"
+  },
+  "D:\\PROGRAMACION\\app_curso\\drizzle\\meta\\_journal.json": {
+    "mtime": 1785540620.998857,
+    "ast_hash": "bb8746d3f8d53292bb0f2350e76a60a7",
+    "semantic_hash": "bb8746d3f8d53292bb0f2350e76a60a7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\env.ts": {
+    "mtime": 1785463766.2615972,
+    "ast_hash": "a6a2e5d5326a4d71ff32afd08b90e1b7",
+    "semantic_hash": "a6a2e5d5326a4d71ff32afd08b90e1b7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\layout.tsx": {
+    "mtime": 1785465871.1121943,
+    "ast_hash": "133cb3519fdb63b2d9ce2fed3dd00d4c",
+    "semantic_hash": "133cb3519fdb63b2d9ce2fed3dd00d4c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(admin)\\layout.tsx": {
+    "mtime": 1785643988.1749983,
+    "ast_hash": "a3802eb2e4419e16cffe2854b400f473",
+    "semantic_hash": "a3802eb2e4419e16cffe2854b400f473"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(admin)\\admin\\certificados\\page.tsx": {
+    "mtime": 1785626712.4220297,
+    "ast_hash": "cfa1dfc70c310f9ec5d12bbab22009a3",
+    "semantic_hash": "cfa1dfc70c310f9ec5d12bbab22009a3"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(admin)\\admin\\pagos\\page.tsx": {
+    "mtime": 1785542552.6070645,
+    "ast_hash": "bbca04765d6f980a54e1c7b24b7782ac",
+    "semantic_hash": "bbca04765d6f980a54e1c7b24b7782ac"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(admin)\\admin\\reembolsos\\page.tsx": {
+    "mtime": 1785644444.6270084,
+    "ast_hash": "1f55ce1d2c30a6ec087b17845c9c2c34",
+    "semantic_hash": "1f55ce1d2c30a6ec087b17845c9c2c34"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(auth)\\layout.tsx": {
+    "mtime": 1785464412.57796,
+    "ast_hash": "b6bf0b6147645602b80ef83eacc50e25",
+    "semantic_hash": "b6bf0b6147645602b80ef83eacc50e25"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(auth)\\login\\page.tsx": {
+    "mtime": 1785595977.938712,
+    "ast_hash": "a2012a122941fe03da67959413bbf72c",
+    "semantic_hash": "a2012a122941fe03da67959413bbf72c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(auth)\\registro\\page.tsx": {
+    "mtime": 1785464419.5492573,
+    "ast_hash": "fc54920ba6044ae9778975eed9fd0673",
+    "semantic_hash": "fc54920ba6044ae9778975eed9fd0673"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(auth)\\verificar-email\\page.tsx": {
+    "mtime": 1785464430.000514,
+    "ast_hash": "e26c0ac500ec1f1c92535ee700531fd6",
+    "semantic_hash": "e26c0ac500ec1f1c92535ee700531fd6"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\layout.tsx": {
+    "mtime": 1785598257.2394586,
+    "ast_hash": "e90bcd00f7441a2954350f5aa353206a",
+    "semantic_hash": "e90bcd00f7441a2954350f5aa353206a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\instructor\\page.tsx": {
+    "mtime": 1785466747.7764719,
+    "ast_hash": "ef111eee5b175bbbf26dcf20594d128b",
+    "semantic_hash": "ef111eee5b175bbbf26dcf20594d128b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\instructor\\cursos\\nuevo\\page.tsx": {
+    "mtime": 1785466758.9247718,
+    "ast_hash": "4315a4837418a69901b94ebe97241ce7",
+    "semantic_hash": "4315a4837418a69901b94ebe97241ce7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\instructor\\cursos\\[id]\\page.tsx": {
+    "mtime": 1785606091.5295794,
+    "ast_hash": "73d5b029c75ac8d00cff1a035f35af86",
+    "semantic_hash": "73d5b029c75ac8d00cff1a035f35af86"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\instructor\\cursos\\[id]\\examen\\page.tsx": {
+    "mtime": 1785609473.944573,
+    "ast_hash": "5be8e0350c5b79d307d9990b1f6937b9",
+    "semantic_hash": "5be8e0350c5b79d307d9990b1f6937b9"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(instructor)\\instructor\\cursos\\[id]\\sesiones\\page.tsx": {
+    "mtime": 1785469575.4533875,
+    "ast_hash": "b892e772b6a8a4eceeb26bc775cddb54",
+    "semantic_hash": "b892e772b6a8a4eceeb26bc775cddb54"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(public)\\layout.tsx": {
+    "mtime": 1785465893.718051,
+    "ast_hash": "7d4feacabf595b3242f83a28270b8d6c",
+    "semantic_hash": "7d4feacabf595b3242f83a28270b8d6c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(public)\\page.tsx": {
+    "mtime": 1785469891.2907844,
+    "ast_hash": "b966dcd13801591deb7138fa5be285dc",
+    "semantic_hash": "b966dcd13801591deb7138fa5be285dc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(public)\\cursos\\page.tsx": {
+    "mtime": 1785469863.8093576,
+    "ast_hash": "e694c290333d4206309991951eec9143",
+    "semantic_hash": "e694c290333d4206309991951eec9143"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(public)\\cursos\\[slug]\\page.tsx": {
+    "mtime": 1785469876.3436775,
+    "ast_hash": "3562cbdbacc68e703428a8c61040c3c4",
+    "semantic_hash": "3562cbdbacc68e703428a8c61040c3c4"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(public)\\verificar\\[code]\\page.tsx": {
+    "mtime": 1785631028.933059,
+    "ast_hash": "a68b1308a9e2a7072ac71cf1ac4373db",
+    "semantic_hash": "a68b1308a9e2a7072ac71cf1ac4373db"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\layout.tsx": {
+    "mtime": 1785627034.9422705,
+    "ast_hash": "be9d050c96c1b53583305333b50c0944",
+    "semantic_hash": "be9d050c96c1b53583305333b50c0944"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\certificados\\page.tsx": {
+    "mtime": 1785627026.8089373,
+    "ast_hash": "7b81923b9e838d0f26fa1b77c61a3ac6",
+    "semantic_hash": "7b81923b9e838d0f26fa1b77c61a3ac6"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\curso\\[slug]\\aprender\\page.tsx": {
+    "mtime": 1785607909.8230622,
+    "ast_hash": "a9afb0e5e1d75c673526a8bcab84aa26",
+    "semantic_hash": "a9afb0e5e1d75c673526a8bcab84aa26"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\curso\\[slug]\\aprender\\[sessionId]\\page.tsx": {
+    "mtime": 1785592964.1373773,
+    "ast_hash": "f8777939c6f2a4d3834eacd79b52812d",
+    "semantic_hash": "f8777939c6f2a4d3834eacd79b52812d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\curso\\[slug]\\examen\\page.tsx": {
+    "mtime": 1785607250.5179422,
+    "ast_hash": "0bacfdf2b917b2de42999d4f2eda40bc",
+    "semantic_hash": "0bacfdf2b917b2de42999d4f2eda40bc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\curso\\[slug]\\examen\\[attemptId]\\page.tsx": {
+    "mtime": 1785607706.9584653,
+    "ast_hash": "76a3290954eb3cfc06b86ad9e13b0d36",
+    "semantic_hash": "76a3290954eb3cfc06b86ad9e13b0d36"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\curso\\[slug]\\examen\\[attemptId]\\resultado\\page.tsx": {
+    "mtime": 1785607264.4148796,
+    "ast_hash": "699ff9ec62caf7f640ec6c71d6b2e37d",
+    "semantic_hash": "699ff9ec62caf7f640ec6c71d6b2e37d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\mi-aprendizaje\\page.tsx": {
+    "mtime": 1785595977.938712,
+    "ast_hash": "c14c1e7451235243126fc5080bcc955c",
+    "semantic_hash": "c14c1e7451235243126fc5080bcc955c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\(student)\\pago\\[orderNumber]\\page.tsx": {
+    "mtime": 1785541297.8288589,
+    "ast_hash": "7de86ea6e668c37cad65f1a9ee50c51f",
+    "semantic_hash": "7de86ea6e668c37cad65f1a9ee50c51f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\admin\\pagos\\[proofId]\\comprobante-url\\route.ts": {
+    "mtime": 1785542321.8213308,
+    "ast_hash": "efa8d14e0b4a0aefb321faa5ce449b6f",
+    "semantic_hash": "efa8d14e0b4a0aefb321faa5ce449b6f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\auth\\[...all]\\route.ts": {
+    "mtime": 1785463766.2555654,
+    "ast_hash": "e8ab7a205d0c0063b8ee3b6e3cdfbcbe",
+    "semantic_hash": "e8ab7a205d0c0063b8ee3b6e3cdfbcbe"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\certificados\\[code]\\pdf\\route.ts": {
+    "mtime": 1785631041.142246,
+    "ast_hash": "e0fa3e3f6439047900ed8148961a246c",
+    "semantic_hash": "e0fa3e3f6439047900ed8148961a246c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\cron\\expirar-ordenes\\route.ts": {
+    "mtime": 1785588844.799162,
+    "ast_hash": "77dca1c8912b881a6637937ce0bbf300",
+    "semantic_hash": "77dca1c8912b881a6637937ce0bbf300"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\cron\\recordatorios\\route.ts": {
+    "mtime": 1785592101.2260609,
+    "ast_hash": "cd4bbe94e625df02fda2709a4a84a683",
+    "semantic_hash": "cd4bbe94e625df02fda2709a4a84a683"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\health\\route.ts": {
+    "mtime": 1785463766.2555654,
+    "ast_hash": "eebc9318b220e2d5890734133b891efd",
+    "semantic_hash": "eebc9318b220e2d5890734133b891efd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\r2\\payment-proof-upload-url\\route.ts": {
+    "mtime": 1785541662.6986506,
+    "ast_hash": "f5e8927bcd43b799777bbb620b7d19de",
+    "semantic_hash": "f5e8927bcd43b799777bbb620b7d19de"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\r2\\upload-url\\route.ts": {
+    "mtime": 1785469463.7636697,
+    "ast_hash": "6972c0e615e2519e3beea19995d0b983",
+    "semantic_hash": "6972c0e615e2519e3beea19995d0b983"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\app\\api\\test-only\\crear-orden\\route.ts": {
+    "mtime": 1785543276.2803612,
+    "ast_hash": "264b35ea5a8f224afd27af696ccf143b",
+    "semantic_hash": "264b35ea5a8f224afd27af696ccf143b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\logout-button.tsx": {
+    "mtime": 1785595857.2616663,
+    "ast_hash": "3d72355020970ab7308efd278102c146",
+    "semantic_hash": "3d72355020970ab7308efd278102c146"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\turnstile-widget.tsx": {
+    "mtime": 1785464403.6092646,
+    "ast_hash": "557e2e009a31af1e8d00112ae4131719",
+    "semantic_hash": "557e2e009a31af1e8d00112ae4131719"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\badge.tsx": {
+    "mtime": 1785465707.14573,
+    "ast_hash": "e4ec840217040d5630ee6ed7213a1d72",
+    "semantic_hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\button.tsx": {
+    "mtime": 1785465689.542339,
+    "ast_hash": "e04ce5251d6b0dd04020988126c905e9",
+    "semantic_hash": "e04ce5251d6b0dd04020988126c905e9"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\card.tsx": {
+    "mtime": 1785465706.9796104,
+    "ast_hash": "bd5f88ad2d983dd6c4561d63824c80ba",
+    "semantic_hash": "bd5f88ad2d983dd6c4561d63824c80ba"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\dialog.tsx": {
+    "mtime": 1785465707.3529134,
+    "ast_hash": "d9618a63d34473ec512321cc12d43692",
+    "semantic_hash": "d9618a63d34473ec512321cc12d43692"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\input.tsx": {
+    "mtime": 1785465706.6345422,
+    "ast_hash": "0607b02d99a2e92f9509223f36ccc6ec",
+    "semantic_hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\label.tsx": {
+    "mtime": 1785465706.7094238,
+    "ast_hash": "a70440da86bfc6a07f15197cca48cb08",
+    "semantic_hash": "a70440da86bfc6a07f15197cca48cb08"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\select.tsx": {
+    "mtime": 1785465706.8994794,
+    "ast_hash": "ab95f478cb74d1906b07425c15b124cc",
+    "semantic_hash": "ab95f478cb74d1906b07425c15b124cc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\sonner.tsx": {
+    "mtime": 1785465707.2476037,
+    "ast_hash": "f46214bc2a6a5153a6e04fad523d5587",
+    "semantic_hash": "f46214bc2a6a5153a6e04fad523d5587"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\table.tsx": {
+    "mtime": 1785465707.063655,
+    "ast_hash": "44f87727e60080863edb00fdd2fcd8da",
+    "semantic_hash": "44f87727e60080863edb00fdd2fcd8da"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\components\\ui\\textarea.tsx": {
+    "mtime": 1785465706.7840004,
+    "ast_hash": "d448d2a90e48542e51b93a1189127bf2",
+    "semantic_hash": "d448d2a90e48542e51b93a1189127bf2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\create-user.ts": {
+    "mtime": 1785598231.0897577,
+    "ast_hash": "37e43c3ecc773e18f74c5302f6c4047f",
+    "semantic_hash": "37e43c3ecc773e18f74c5302f6c4047f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\index.ts": {
+    "mtime": 1785466908.6397638,
+    "ast_hash": "25ab5161b90a68fa17d2a6165f56f694",
+    "semantic_hash": "25ab5161b90a68fa17d2a6165f56f694"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\seed.ts": {
+    "mtime": 1785541063.5006118,
+    "ast_hash": "94eabc3c7571e4eb68706912994400c4",
+    "semantic_hash": "94eabc3c7571e4eb68706912994400c4"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\assessment.ts": {
+    "mtime": 1785463766.2575648,
+    "ast_hash": "f1708ea6d86bd2b56d23a302d93e7090",
+    "semantic_hash": "f1708ea6d86bd2b56d23a302d93e7090"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\auth.ts": {
+    "mtime": 1785463766.258597,
+    "ast_hash": "27b10e431ebbac3ece2cb61c350cb97a",
+    "semantic_hash": "27b10e431ebbac3ece2cb61c350cb97a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\billing.ts": {
+    "mtime": 1785540620.998857,
+    "ast_hash": "32d7d63462d7fbe3b260428da1b4a350",
+    "semantic_hash": "32d7d63462d7fbe3b260428da1b4a350"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\catalog.ts": {
+    "mtime": 1785463766.258597,
+    "ast_hash": "6e2c63e5b4c818c54eafa0d6854ddf4d",
+    "semantic_hash": "6e2c63e5b4c818c54eafa0d6854ddf4d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\certification.ts": {
+    "mtime": 1785463766.2595963,
+    "ast_hash": "cbc3770cea441edd8e99bb783d29e39b",
+    "semantic_hash": "cbc3770cea441edd8e99bb783d29e39b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\earnings.ts": {
+    "mtime": 1785463766.2595963,
+    "ast_hash": "68403fac77873cb967cea0ae108ad5f6",
+    "semantic_hash": "68403fac77873cb967cea0ae108ad5f6"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\enrollment.ts": {
+    "mtime": 1785463766.2595963,
+    "ast_hash": "e03dc7288825720e2e9f0faea9bb4bf3",
+    "semantic_hash": "e03dc7288825720e2e9f0faea9bb4bf3"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\index.ts": {
+    "mtime": 1785463766.260597,
+    "ast_hash": "d1211b8b014da83c262a0b6d783c46f9",
+    "semantic_hash": "d1211b8b014da83c262a0b6d783c46f9"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\notifications.ts": {
+    "mtime": 1785463766.260597,
+    "ast_hash": "6ac6bfef3ee171063c45db2b02df05f3",
+    "semantic_hash": "6ac6bfef3ee171063c45db2b02df05f3"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\profiles.ts": {
+    "mtime": 1785463766.260597,
+    "ast_hash": "77e70fdc06f0cf6394fc1a87b3247fe7",
+    "semantic_hash": "77e70fdc06f0cf6394fc1a87b3247fe7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\db\\schema\\sessions.ts": {
+    "mtime": 1785463766.2615972,
+    "ast_hash": "0da94fc7f5cc789657b90339fbbb560f",
+    "semantic_hash": "0da94fc7f5cc789657b90339fbbb560f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\auth-client.ts": {
+    "mtime": 1785463766.2615972,
+    "ast_hash": "778980c9c161a41d6ab16928c36c38ae",
+    "semantic_hash": "778980c9c161a41d6ab16928c36c38ae"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\auth.ts": {
+    "mtime": 1785464375.2764413,
+    "ast_hash": "a2e19aa928ac1f55ce20b4e87263a8c0",
+    "semantic_hash": "a2e19aa928ac1f55ce20b4e87263a8c0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\datetime.ts": {
+    "mtime": 1785595977.9397118,
+    "ast_hash": "1ba57fe5af1f9aa3f666200a495c4e1e",
+    "semantic_hash": "1ba57fe5af1f9aa3f666200a495c4e1e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\money.ts": {
+    "mtime": 1785463766.2625957,
+    "ast_hash": "d8a335bd4b077eb93120d2b7526763f0",
+    "semantic_hash": "d8a335bd4b077eb93120d2b7526763f0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\r2.ts": {
+    "mtime": 1785469454.2255456,
+    "ast_hash": "f67af402a5e355c33ab1cef6857e4a2d",
+    "semantic_hash": "f67af402a5e355c33ab1cef6857e4a2d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\slug.ts": {
+    "mtime": 1785463766.263597,
+    "ast_hash": "88ba19ec53ce0c080906d6754eaf9d91",
+    "semantic_hash": "88ba19ec53ce0c080906d6754eaf9d91"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\turnstile.ts": {
+    "mtime": 1785464051.5479941,
+    "ast_hash": "4bbab935e59c39d3b97b69fecbb32490",
+    "semantic_hash": "4bbab935e59c39d3b97b69fecbb32490"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\lib\\utils.ts": {
+    "mtime": 1785465689.6451733,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\actions.ts": {
+    "mtime": 1785609630.2494318,
+    "ast_hash": "9ad005ede1a1ca59ba65c07d55b1d480",
+    "semantic_hash": "9ad005ede1a1ca59ba65c07d55b1d480"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\grading.ts": {
+    "mtime": 1785613047.1548467,
+    "ast_hash": "5cc50fdf26d0ba268e4fd290c70d440a",
+    "semantic_hash": "5cc50fdf26d0ba268e4fd290c70d440a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\queries.ts": {
+    "mtime": 1785606965.3270862,
+    "ast_hash": "61c8db57ac0aca5b0e3a1ccd2a6b5a30",
+    "semantic_hash": "61c8db57ac0aca5b0e3a1ccd2a6b5a30"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\service.ts": {
+    "mtime": 1785609006.7436776,
+    "ast_hash": "c02b28a7857be7094de2ea604f62b446",
+    "semantic_hash": "c02b28a7857be7094de2ea604f62b446"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\cuenta-regresiva.tsx": {
+    "mtime": 1785607227.5569644,
+    "ast_hash": "d5e7324d4942c242e59dc75747b03e23",
+    "semantic_hash": "d5e7324d4942c242e59dc75747b03e23"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\exam-settings-form.tsx": {
+    "mtime": 1785606042.4348645,
+    "ast_hash": "5af6e4e608b21dfa6993a6f1dff4997d",
+    "semantic_hash": "5af6e4e608b21dfa6993a6f1dff4997d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\iniciar-intento-button.tsx": {
+    "mtime": 1785607223.8098788,
+    "ast_hash": "400dcf46d52e8306f7c6bfb86d563a12",
+    "semantic_hash": "400dcf46d52e8306f7c6bfb86d563a12"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\intento-runner.tsx": {
+    "mtime": 1785607708.480067,
+    "ast_hash": "9e9df5c838c71138d40e0b65f341b059",
+    "semantic_hash": "9e9df5c838c71138d40e0b65f341b059"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\publish-exam-button.tsx": {
+    "mtime": 1785606069.0248592,
+    "ast_hash": "63f9234f39a62120ad2761ea0e0266f0",
+    "semantic_hash": "63f9234f39a62120ad2761ea0e0266f0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\question-form.tsx": {
+    "mtime": 1785606057.3385985,
+    "ast_hash": "d34fc37ef25cc1bda4696cbfcaca2e54",
+    "semantic_hash": "d34fc37ef25cc1bda4696cbfcaca2e54"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\assessment\\ui\\question-list.tsx": {
+    "mtime": 1785609469.7994208,
+    "ast_hash": "66779e17e83c9d2e20388cec72e7aac7",
+    "semantic_hash": "66779e17e83c9d2e20388cec72e7aac7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\auth\\guards.ts": {
+    "mtime": 1785464681.700811,
+    "ast_hash": "532d153faf9144e04955c617960f282a",
+    "semantic_hash": "532d153faf9144e04955c617960f282a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\auth\\session.ts": {
+    "mtime": 1785464685.312205,
+    "ast_hash": "42f3cdee3e6d222102d539ad041b1bb5",
+    "semantic_hash": "42f3cdee3e6d222102d539ad041b1bb5"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\actions.ts": {
+    "mtime": 1785644429.6694582,
+    "ast_hash": "d6c73a13e48b5fba87cce50c14280b5a",
+    "semantic_hash": "d6c73a13e48b5fba87cce50c14280b5a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\jobs.ts": {
+    "mtime": 1785588741.973482,
+    "ast_hash": "434e19174a37113443ebf2ddf6b5715e",
+    "semantic_hash": "434e19174a37113443ebf2ddf6b5715e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\queries.ts": {
+    "mtime": 1785540567.4944594,
+    "ast_hash": "b1776682c9ecb4b778a914c0af7209f8",
+    "semantic_hash": "b1776682c9ecb4b778a914c0af7209f8"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\service.ts": {
+    "mtime": 1785540551.1081517,
+    "ast_hash": "1141c14fa1765d5599913a37c9e85f7f",
+    "semantic_hash": "1141c14fa1765d5599913a37c9e85f7f"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\ui\\admin-proof-review.tsx": {
+    "mtime": 1785542555.1913772,
+    "ast_hash": "9e91886e2fcac667fe95b21731be6814",
+    "semantic_hash": "9e91886e2fcac667fe95b21731be6814"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\billing\\ui\\payment-proof-form.tsx": {
+    "mtime": 1785541662.6986506,
+    "ast_hash": "8dd03b467dd35fda904f63bf48ec58cc",
+    "semantic_hash": "8dd03b467dd35fda904f63bf48ec58cc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\actions.ts": {
+    "mtime": 1785466456.6737275,
+    "ast_hash": "6dcaa74222398748b8a10d94d076a69e",
+    "semantic_hash": "6dcaa74222398748b8a10d94d076a69e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\queries.ts": {
+    "mtime": 1785469825.8967655,
+    "ast_hash": "4857c1b24de34fe01f6f229538726ccb",
+    "semantic_hash": "4857c1b24de34fe01f6f229538726ccb"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\service.ts": {
+    "mtime": 1785468910.1232145,
+    "ast_hash": "0d2eaf5e74b60f438187d4da5dbbf278",
+    "semantic_hash": "0d2eaf5e74b60f438187d4da5dbbf278"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\session-actions.ts": {
+    "mtime": 1785468934.7350833,
+    "ast_hash": "584c48254ba46eea4617f03ced1075e0",
+    "semantic_hash": "584c48254ba46eea4617f03ced1075e0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\ui\\course-form.tsx": {
+    "mtime": 1785466720.1848464,
+    "ast_hash": "7da319a30890cfe11d5ed404cd15e1b2",
+    "semantic_hash": "7da319a30890cfe11d5ed404cd15e1b2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\ui\\publish-button.tsx": {
+    "mtime": 1785466726.7389677,
+    "ast_hash": "37c7e8f21306337551dbbe6fe5ca5d8c",
+    "semantic_hash": "37c7e8f21306337551dbbe6fe5ca5d8c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\ui\\session-form.tsx": {
+    "mtime": 1785469163.979824,
+    "ast_hash": "be7d9a3124d4652c207c4bd2270a1d3d",
+    "semantic_hash": "be7d9a3124d4652c207c4bd2270a1d3d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\catalog\\ui\\session-list.tsx": {
+    "mtime": 1785469566.651765,
+    "ast_hash": "be2e65028d8fefda34879125ab6b6b42",
+    "semantic_hash": "be2e65028d8fefda34879125ab6b6b42"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\actions.ts": {
+    "mtime": 1785644435.1892598,
+    "ast_hash": "facb481a3a688ad5fc467acf3a446bb1",
+    "semantic_hash": "facb481a3a688ad5fc467acf3a446bb1"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\issuance.ts": {
+    "mtime": 1785643988.1759982,
+    "ast_hash": "b8541b5fa92687a8a0b7c165eb2fb924",
+    "semantic_hash": "b8541b5fa92687a8a0b7c165eb2fb924"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\pdf.tsx": {
+    "mtime": 1785626436.550696,
+    "ast_hash": "2b13858c125f772440c84693eaae886c",
+    "semantic_hash": "2b13858c125f772440c84693eaae886c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\queries.ts": {
+    "mtime": 1785627010.4502275,
+    "ast_hash": "26a28c73cf0e111a2c3b4e7620bd3add",
+    "semantic_hash": "26a28c73cf0e111a2c3b4e7620bd3add"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\service.ts": {
+    "mtime": 1785631024.9200742,
+    "ast_hash": "2595e8468c6aa128f3c15db919170095",
+    "semantic_hash": "2595e8468c6aa128f3c15db919170095"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\certification\\ui\\revoke-certificate-button.tsx": {
+    "mtime": 1785626696.0317705,
+    "ast_hash": "6f8e0771b46156f1c7d8780a6a4485bc",
+    "semantic_hash": "6f8e0771b46156f1c7d8780a6a4485bc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\actions.ts": {
+    "mtime": 1785591816.5994112,
+    "ast_hash": "86d548f1e53468c6d2b51596672f48fd",
+    "semantic_hash": "86d548f1e53468c6d2b51596672f48fd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\jobs.ts": {
+    "mtime": 1785595977.9397118,
+    "ast_hash": "3bf7cfec3363763b5d351b0cc8f923ed",
+    "semantic_hash": "3bf7cfec3363763b5d351b0cc8f923ed"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\queries.ts": {
+    "mtime": 1785607906.1858494,
+    "ast_hash": "0dc5660c1aa1e21a9f50084c0c2ae77a",
+    "semantic_hash": "0dc5660c1aa1e21a9f50084c0c2ae77a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\service.ts": {
+    "mtime": 1785595977.940712,
+    "ast_hash": "b494f921b6cbf9d4255a964c43356e27",
+    "semantic_hash": "b494f921b6cbf9d4255a964c43356e27"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\ui\\descargar-material-button.tsx": {
+    "mtime": 1785592950.1785097,
+    "ast_hash": "2f3cdce11ddddff89ff6b09a4a9c7a4a",
+    "semantic_hash": "2f3cdce11ddddff89ff6b09a4a9c7a4a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\learning\\ui\\marcar-progreso-button.tsx": {
+    "mtime": 1785592950.1267066,
+    "ast_hash": "1b21ef6633e3e3013a3f1b6a25a93781",
+    "semantic_hash": "1b21ef6633e3e3013a3f1b6a25a93781"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\materials\\actions.ts": {
+    "mtime": 1785590809.5995579,
+    "ast_hash": "4c943dba9cf8e5575c237ff2c4911939",
+    "semantic_hash": "4c943dba9cf8e5575c237ff2c4911939"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\materials\\service.ts": {
+    "mtime": 1785469420.3677735,
+    "ast_hash": "58dec44287b09439038a2ab4a1fc9455",
+    "semantic_hash": "58dec44287b09439038a2ab4a1fc9455"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\materials\\ui\\material-manager.tsx": {
+    "mtime": 1785469548.5189538,
+    "ast_hash": "26ea4952ddd86d23865f60c31628e93c",
+    "semantic_hash": "26ea4952ddd86d23865f60c31628e93c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\mailer.ts": {
+    "mtime": 1785463766.2655966,
+    "ast_hash": "7aa294f25e65592b697041b8cb0e98f6",
+    "semantic_hash": "7aa294f25e65592b697041b8cb0e98f6"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\order-approved.ts": {
+    "mtime": 1785542922.6761448,
+    "ast_hash": "8e2153fe2ed6803f12322ef2b791cb35",
+    "semantic_hash": "8e2153fe2ed6803f12322ef2b791cb35"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\order-rejected.ts": {
+    "mtime": 1785542922.677144,
+    "ast_hash": "1737da029d9bf9cf5a8a9638191cef66",
+    "semantic_hash": "1737da029d9bf9cf5a8a9638191cef66"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\payment-proof-received.ts": {
+    "mtime": 1785542922.677144,
+    "ast_hash": "813366bdc3e69bb55fc489c3da9a12f8",
+    "semantic_hash": "813366bdc3e69bb55fc489c3da9a12f8"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\refund-processed.ts": {
+    "mtime": 1785643988.1759982,
+    "ast_hash": "f58dfe9bdcae5a752a384f22c55944e2",
+    "semantic_hash": "f58dfe9bdcae5a752a384f22c55944e2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\session-reminder-1h.ts": {
+    "mtime": 1785592032.9565196,
+    "ast_hash": "57ffb562df50fd4ce3cb45954c5c74c9",
+    "semantic_hash": "57ffb562df50fd4ce3cb45954c5c74c9"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\session-reminder-24h.ts": {
+    "mtime": 1785592027.9681,
+    "ast_hash": "f9cff5b9bc679b45a0932e3f15786e63",
+    "semantic_hash": "f9cff5b9bc679b45a0932e3f15786e63"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\notifications\\templates\\verify-email.ts": {
+    "mtime": 1785464115.8900585,
+    "ast_hash": "ec66b2c45078d9da288ab66157329d2b",
+    "semantic_hash": "ec66b2c45078d9da288ab66157329d2b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\refunds\\actions.ts": {
+    "mtime": 1785643988.176997,
+    "ast_hash": "866c9eebc4e3d432b5ee50fb8ebd6943",
+    "semantic_hash": "866c9eebc4e3d432b5ee50fb8ebd6943"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\refunds\\queries.ts": {
+    "mtime": 1785644441.6435995,
+    "ast_hash": "adeaa29feabd171d6353622e49ce9272",
+    "semantic_hash": "adeaa29feabd171d6353622e49ce9272"
+  },
+  "D:\\PROGRAMACION\\app_curso\\src\\modules\\refunds\\ui\\revoke-access-button.tsx": {
+    "mtime": 1785643988.1779969,
+    "ast_hash": "c4630f6540ce41928e2c03960ac670c0",
+    "semantic_hash": "c4630f6540ce41928e2c03960ac670c0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\aula.spec.ts": {
+    "mtime": 1785593325.3953102,
+    "ast_hash": "82f2fa66541ad7a1e41f2c2ea0846e26",
+    "semantic_hash": "82f2fa66541ad7a1e41f2c2ea0846e26"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\catalogo.spec.ts": {
+    "mtime": 1785470267.4843037,
+    "ast_hash": "70a98bde9d646c797e15a65eff3b15ea",
+    "semantic_hash": "70a98bde9d646c797e15a65eff3b15ea"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\certificados.spec.ts": {
+    "mtime": 1785630190.4173872,
+    "ast_hash": "7d3f9de479bb2bb324eceab4efc2475e",
+    "semantic_hash": "7d3f9de479bb2bb324eceab4efc2475e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\examen.spec.ts": {
+    "mtime": 1785607936.122315,
+    "ast_hash": "08418937e5fbd098383b8e9b49b74735",
+    "semantic_hash": "08418937e5fbd098383b8e9b49b74735"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\fixtures.ts": {
+    "mtime": 1785627253.0879946,
+    "ast_hash": "00369b1105227a28af80fb8d8cd82c26",
+    "semantic_hash": "00369b1105227a28af80fb8d8cd82c26"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\e2e\\pago.spec.ts": {
+    "mtime": 1785544064.0813687,
+    "ast_hash": "ee148375dd944714dbe76e37fcc3001a",
+    "semantic_hash": "ee148375dd944714dbe76e37fcc3001a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\assessment-envio.test.ts": {
+    "mtime": 1785631072.6002789,
+    "ast_hash": "476172b3a54e2e4f9098c67672868b62",
+    "semantic_hash": "476172b3a54e2e4f9098c67672868b62"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\assessment-instructor.test.ts": {
+    "mtime": 1785624688.4795277,
+    "ast_hash": "e85cd9b3381ebd4c60a2545207d2c49c",
+    "semantic_hash": "e85cd9b3381ebd4c60a2545207d2c49c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\assessment-intento.test.ts": {
+    "mtime": 1785609485.8466644,
+    "ast_hash": "8b023ec74fac6234a099940fe13739b0",
+    "semantic_hash": "8b023ec74fac6234a099940fe13739b0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\assessment-responder.test.ts": {
+    "mtime": 1785606635.1233292,
+    "ast_hash": "deef762b818e71f8ad4bc1979bd8f4a3",
+    "semantic_hash": "deef762b818e71f8ad4bc1979bd8f4a3"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\auth-schema.test.ts": {
+    "mtime": 1785463766.2655966,
+    "ast_hash": "ca50cca16f19d2060605b3e3aa8836df",
+    "semantic_hash": "ca50cca16f19d2060605b3e3aa8836df"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\billing-actions.test.ts": {
+    "mtime": 1785540588.2979486,
+    "ast_hash": "136f541a95d01b043eeadb72765ab949",
+    "semantic_hash": "136f541a95d01b043eeadb72765ab949"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\billing-approve.test.ts": {
+    "mtime": 1785644470.168343,
+    "ast_hash": "3a46afcf3f6462e8f1c82183ddd5b8be",
+    "semantic_hash": "3a46afcf3f6462e8f1c82183ddd5b8be"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\billing-proof.test.ts": {
+    "mtime": 1785597359.2047083,
+    "ast_hash": "d2912d9e35d467ad6e4d8b34e0ba43c1",
+    "semantic_hash": "d2912d9e35d467ad6e4d8b34e0ba43c1"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\catalog-actions.test.ts": {
+    "mtime": 1785466496.73606,
+    "ast_hash": "2cd75681d2f4a5d07a03b1c5a86108e7",
+    "semantic_hash": "2cd75681d2f4a5d07a03b1c5a86108e7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\catalog-queries.test.ts": {
+    "mtime": 1785469755.7347224,
+    "ast_hash": "48282c61db1e36f8f5b83b40009941a3",
+    "semantic_hash": "48282c61db1e36f8f5b83b40009941a3"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-admin.test.ts": {
+    "mtime": 1785643988.1779969,
+    "ast_hash": "805df3e9942e1ecb8fd604bb833cf317",
+    "semantic_hash": "805df3e9942e1ecb8fd604bb833cf317"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-issuance.test.ts": {
+    "mtime": 1785631059.4369574,
+    "ast_hash": "e3e96c0a660cc99eecedbde7c0b52d3c",
+    "semantic_hash": "e3e96c0a660cc99eecedbde7c0b52d3c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-mine.test.ts": {
+    "mtime": 1785626984.723771,
+    "ast_hash": "f0be5ecb9bd8d555be1ec5f3700d5751",
+    "semantic_hash": "f0be5ecb9bd8d555be1ec5f3700d5751"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-pdf.test.ts": {
+    "mtime": 1785632032.9223504,
+    "ast_hash": "b63bedd31f7aa296234ef5be7f911909",
+    "semantic_hash": "b63bedd31f7aa296234ef5be7f911909"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-queries.test.ts": {
+    "mtime": 1785625397.3468423,
+    "ast_hash": "2beb5a4e44248db2b8c0f90bd96fa44b",
+    "semantic_hash": "2beb5a4e44248db2b8c0f90bd96fa44b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\certification-revoke-tx.test.ts": {
+    "mtime": 1785644423.1904352,
+    "ast_hash": "ad356bfb3475020e326cb69128920109",
+    "semantic_hash": "ad356bfb3475020e326cb69128920109"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\guards.test.ts": {
+    "mtime": 1785464658.1101544,
+    "ast_hash": "d2b8ac7fb7e1d35c7eb9d6ccadc307f7",
+    "semantic_hash": "d2b8ac7fb7e1d35c7eb9d6ccadc307f7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\health.test.ts": {
+    "mtime": 1785463766.2665966,
+    "ast_hash": "f9726de35bc0fa64625902a2ccde9022",
+    "semantic_hash": "f9726de35bc0fa64625902a2ccde9022"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\learning-actions.test.ts": {
+    "mtime": 1785591798.2235978,
+    "ast_hash": "98c2963c008118eab9e7ad4de2e9552c",
+    "semantic_hash": "98c2963c008118eab9e7ad4de2e9552c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\learning-queries.test.ts": {
+    "mtime": 1785607913.848204,
+    "ast_hash": "c54d473d86b800929d020a2e2a40eabf",
+    "semantic_hash": "c54d473d86b800929d020a2e2a40eabf"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\mailer.test.ts": {
+    "mtime": 1785463766.2665966,
+    "ast_hash": "b28782a92ec8c053a7ec0e73764e837c",
+    "semantic_hash": "b28782a92ec8c053a7ec0e73764e837c"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\materials-actions.test.ts": {
+    "mtime": 1785590787.1547751,
+    "ast_hash": "8765793e6a316150755eaaa675799bb1",
+    "semantic_hash": "8765793e6a316150755eaaa675799bb1"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\order-expiry.test.ts": {
+    "mtime": 1785596818.7116933,
+    "ast_hash": "c62ac7756abde878cedb2be0b6a4114a",
+    "semantic_hash": "c62ac7756abde878cedb2be0b6a4114a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\refunds-actions.test.ts": {
+    "mtime": 1785643988.1789982,
+    "ast_hash": "7a86b95e11c0f88b32e3a662881302fd",
+    "semantic_hash": "7a86b95e11c0f88b32e3a662881302fd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\refunds-queries.test.ts": {
+    "mtime": 1785644413.1810498,
+    "ast_hash": "0f28fb3eabcfdd85d8b4399888784edd",
+    "semantic_hash": "0f28fb3eabcfdd85d8b4399888784edd"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\schema.test.ts": {
+    "mtime": 1785463766.2665966,
+    "ast_hash": "86b83223da0ba3a4710a678dcaa7b810",
+    "semantic_hash": "86b83223da0ba3a4710a678dcaa7b810"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\session-actions.test.ts": {
+    "mtime": 1785468953.3194985,
+    "ast_hash": "568e8b655565a18621b3dcd654bea7a9",
+    "semantic_hash": "568e8b655565a18621b3dcd654bea7a9"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\integration\\session-reminders.test.ts": {
+    "mtime": 1785596219.8165214,
+    "ast_hash": "c4f60a2dcbf73741c1cbc6537b74c9ea",
+    "semantic_hash": "c4f60a2dcbf73741c1cbc6537b74c9ea"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\setup\\db.ts": {
+    "mtime": 1785468607.2244103,
+    "ast_hash": "260977f7045e0307acda2e46f40615fa",
+    "semantic_hash": "260977f7045e0307acda2e46f40615fa"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\assessment-service.test.ts": {
+    "mtime": 1785599951.9974499,
+    "ast_hash": "2ca2ebfaa7bfc700eead237f4ed62305",
+    "semantic_hash": "2ca2ebfaa7bfc700eead237f4ed62305"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\billing-service.test.ts": {
+    "mtime": 1785540533.408277,
+    "ast_hash": "ea1690405f33f9e2ea29a5ac1541c4be",
+    "semantic_hash": "ea1690405f33f9e2ea29a5ac1541c4be"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\catalog-service.test.ts": {
+    "mtime": 1785466430.5141027,
+    "ast_hash": "99b8a700d6ab33e2b1c0ba435ffdd4a7",
+    "semantic_hash": "99b8a700d6ab33e2b1c0ba435ffdd4a7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\certification-service.test.ts": {
+    "mtime": 1785612803.8266244,
+    "ast_hash": "bafc88b40350ac92d8342fef07697000",
+    "semantic_hash": "bafc88b40350ac92d8342fef07697000"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\datetime.test.ts": {
+    "mtime": 1785595977.941712,
+    "ast_hash": "2a510a884c63c20532519dfc5b51cd5e",
+    "semantic_hash": "2a510a884c63c20532519dfc5b51cd5e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\learning-service.test.ts": {
+    "mtime": 1785595977.941712,
+    "ast_hash": "51ae7aea217e7a99bbd77156c38f7296",
+    "semantic_hash": "51ae7aea217e7a99bbd77156c38f7296"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\materials-service.test.ts": {
+    "mtime": 1785469397.8179617,
+    "ast_hash": "7e2a7b98e357aa2a005e880289142038",
+    "semantic_hash": "7e2a7b98e357aa2a005e880289142038"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\money.test.ts": {
+    "mtime": 1785463766.2675946,
+    "ast_hash": "bd958e99aa80355c1f4c5626c0ccd2df",
+    "semantic_hash": "bd958e99aa80355c1f4c5626c0ccd2df"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\session-service.test.ts": {
+    "mtime": 1785468886.3186648,
+    "ast_hash": "dd026caefa4780d9e8e41c5e68770222",
+    "semantic_hash": "dd026caefa4780d9e8e41c5e68770222"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\slug.test.ts": {
+    "mtime": 1785463766.26895,
+    "ast_hash": "6e5617844c601ed480914036490b5bbb",
+    "semantic_hash": "6e5617844c601ed480914036490b5bbb"
+  },
+  "D:\\PROGRAMACION\\app_curso\\tests\\unit\\turnstile.test.ts": {
+    "mtime": 1785464032.241991,
+    "ast_hash": "7db274d1c27b5dfb1ea25152e454df0d",
+    "semantic_hash": "7db274d1c27b5dfb1ea25152e454df0d"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docker-compose.yml": {
+    "mtime": 1785468577.3200986,
+    "ast_hash": "98ca2de137c4188f28d06262e7fa5cbf",
+    "semantic_hash": "98ca2de137c4188f28d06262e7fa5cbf"
+  },
+  "D:\\PROGRAMACION\\app_curso\\pnpm-workspace.yaml": {
+    "mtime": 1785463766.2525651,
+    "ast_hash": "66ea5b862af23677d8b4d2f35ee4fd7b",
+    "semantic_hash": "66ea5b862af23677d8b4d2f35ee4fd7b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\README.md": {
+    "mtime": 1785468617.7456605,
+    "ast_hash": "0192ba28433ff2878c3791f585e4dd9a",
+    "semantic_hash": "0192ba28433ff2878c3791f585e4dd9a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\final-review-fix-report.md": {
+    "mtime": 1785644657.9108121,
+    "ast_hash": "0b760c99256dc97bea0eb6899dc0e859",
+    "semantic_hash": "0b760c99256dc97bea0eb6899dc0e859"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\progress.md": {
+    "mtime": 1785643670.161626,
+    "ast_hash": "d40fe083ec046288506ffb4c16cd8de2",
+    "semantic_hash": "d40fe083ec046288506ffb4c16cd8de2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-1-brief.md": {
+    "mtime": 1785642062.1011953,
+    "ast_hash": "4f80ccce33b8892324f515645136351a",
+    "semantic_hash": "4f80ccce33b8892324f515645136351a"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-1-report.md": {
+    "mtime": 1785642185.690916,
+    "ast_hash": "4aee5ec67ceb0663b1473bac3857d9b7",
+    "semantic_hash": "4aee5ec67ceb0663b1473bac3857d9b7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-2-brief.md": {
+    "mtime": 1785642311.3171341,
+    "ast_hash": "d5aba47abab68c7cb2098bc6923b68a1",
+    "semantic_hash": "d5aba47abab68c7cb2098bc6923b68a1"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-2-report.md": {
+    "mtime": 1785643236.6627634,
+    "ast_hash": "1516f07fff3c80bd5907e58fb2efcc92",
+    "semantic_hash": "1516f07fff3c80bd5907e58fb2efcc92"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-3-brief.md": {
+    "mtime": 1785643428.4061847,
+    "ast_hash": "a0b2a11397ad8ab836f0eecf7c402620",
+    "semantic_hash": "a0b2a11397ad8ab836f0eecf7c402620"
+  },
+  "D:\\PROGRAMACION\\app_curso\\.superpowers\\sdd\\2026-08-01-fase-6-reembolsos\\task-3-report.md": {
+    "mtime": 1785643572.6348157,
+    "ast_hash": "3c6b699e16d7094a8a6fc808df494896",
+    "semantic_hash": "3c6b699e16d7094a8a6fc808df494896"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-07-29-fase-0-1-fundacion-y-catalogo.md": {
+    "mtime": 1785463766.2460542,
+    "ast_hash": "c46e46300e4d87182af38fb543702b1b",
+    "semantic_hash": "c46e46300e4d87182af38fb543702b1b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-07-31-fase-2-pago-manual.md": {
+    "mtime": 1785539957.0169446,
+    "ast_hash": "51ef8dcce73caddf79b8cdbbecb9f0fb",
+    "semantic_hash": "51ef8dcce73caddf79b8cdbbecb9f0fb"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-08-01-fase-3-aula-del-alumno.md": {
+    "mtime": 1785590236.9171612,
+    "ast_hash": "482890733a85b53dae21eb046a9c131b",
+    "semantic_hash": "482890733a85b53dae21eb046a9c131b"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-08-01-fase-4-examen.md": {
+    "mtime": 1785599876.0843692,
+    "ast_hash": "cefda6a4bc61b0ece914e81394bae6d5",
+    "semantic_hash": "cefda6a4bc61b0ece914e81394bae6d5"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-08-01-fase-5-certificados.md": {
+    "mtime": 1785611774.3676226,
+    "ast_hash": "c036a68b4fedba4f4e59079ed43ef7fc",
+    "semantic_hash": "c036a68b4fedba4f4e59079ed43ef7fc"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\plans\\2026-08-01-fase-6-reembolsos.md": {
+    "mtime": 1785643988.1739984,
+    "ast_hash": "fde24912f08770ead471799b085dc0e0",
+    "semantic_hash": "fde24912f08770ead471799b085dc0e0"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\specs\\2026-07-29-plataforma-cursos-online-design.md": {
+    "mtime": 1785463766.2460542,
+    "ast_hash": "a84b59101f551a9872febf0327f956c7",
+    "semantic_hash": "a84b59101f551a9872febf0327f956c7"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\specs\\2026-08-01-fase-4-examen-design.md": {
+    "mtime": 1785598634.8336096,
+    "ast_hash": "4a6eacef82de728d7788d1eb777d9fe2",
+    "semantic_hash": "4a6eacef82de728d7788d1eb777d9fe2"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\specs\\2026-08-01-fase-5-certificados-design.md": {
+    "mtime": 1785610711.1827135,
+    "ast_hash": "3e418c51922f006a2baaa3ae62a84f47",
+    "semantic_hash": "3e418c51922f006a2baaa3ae62a84f47"
+  },
+  "D:\\PROGRAMACION\\app_curso\\docs\\superpowers\\specs\\2026-08-01-fase-6-reembolsos-design.md": {
+    "mtime": 1785643988.1739984,
+    "ast_hash": "ffb9f02a73d74a9a394eb548f32cd0ff",
+    "semantic_hash": "ffb9f02a73d74a9a394eb548f32cd0ff"
+  },
+  "D:\\PROGRAMACION\\app_curso\\public\\file.svg": {
+    "mtime": 1785463766.2535634,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "D:\\PROGRAMACION\\app_curso\\public\\globe.svg": {
+    "mtime": 1785463766.2535634,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "D:\\PROGRAMACION\\app_curso\\public\\next.svg": {
+    "mtime": 1785463766.2535634,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\public\\vercel.svg": {
+    "mtime": 1785463766.2545655,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "D:\\PROGRAMACION\\app_curso\\public\\window.svg": {
+    "mtime": 1785463766.2545655,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}

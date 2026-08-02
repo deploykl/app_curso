@@ -7,25 +7,13 @@
  * reemplaza la contraseña. Si el rol es instructor o admin, además le crea un
  * perfil de instructor aprobado para que pueda armar cursos.
  */
-import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { user, account, instructorProfiles } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { buscarUsuarioPorEmail } from "@/modules/users/queries";
+import { crearUsuario, actualizarUsuarioExistente, type RolUsuario } from "@/modules/users/service";
 
 const ROLES = ["student", "instructor", "admin"] as const;
-type Role = (typeof ROLES)[number];
 
-function isRole(value: string): value is Role {
+function isRole(value: string): value is RolUsuario {
   return (ROLES as readonly string[]).includes(value);
-}
-
-async function setPassword(userId: string, password: string) {
-  const ctx = await auth.$context;
-  const hash = await ctx.password.hash(password);
-  await db
-    .update(account)
-    .set({ password: hash })
-    .where(and(eq(account.userId, userId), eq(account.providerId, "credential")));
 }
 
 async function main() {
@@ -46,31 +34,17 @@ async function main() {
     process.exit(1);
   }
 
-  const [existing] = await db.select().from(user).where(eq(user.email, email)).limit(1);
+  const existing = await buscarUsuarioPorEmail(email);
 
   if (existing) {
-    await db
-      .update(user)
-      .set({ name, role, emailVerified: true })
-      .where(eq(user.id, existing.id));
-    await setPassword(existing.id, password);
+    await actualizarUsuarioExistente({ email, password, name, role });
     console.log(`Usuario actualizado: ${email} (rol: ${role}, contraseña reemplazada)`);
   } else {
-    await auth.api.signUpEmail({ body: { email, password, name } });
-    await db.update(user).set({ role, emailVerified: true }).where(eq(user.email, email));
+    await crearUsuario({ email, password, name, role });
     console.log(`Usuario creado: ${email} (rol: ${role})`);
   }
 
-  const [u] = await db.select().from(user).where(eq(user.email, email)).limit(1);
-
   if (role === "instructor" || role === "admin") {
-    await db
-      .insert(instructorProfiles)
-      .values({ userId: u.id, displayName: name, commissionRate: "30.00", status: "approved" })
-      .onConflictDoUpdate({
-        target: instructorProfiles.userId,
-        set: { displayName: name, status: "approved" },
-      });
     console.log(`Perfil de instructor aprobado para ${email}.`);
   }
 

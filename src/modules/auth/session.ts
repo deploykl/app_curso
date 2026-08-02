@@ -11,6 +11,7 @@ export async function getSessionUser() {
 export async function requireUser() {
   const u = await getSessionUser();
   if (!u) redirect("/login");
+  if ((u as { active?: boolean }).active === false) redirect("/login");
   return u;
 }
 
