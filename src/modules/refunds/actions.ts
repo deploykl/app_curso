@@ -16,14 +16,34 @@ export async function revocarAcceso(orderId: string, motivo: string): Promise<vo
     throw new Error("Escribe el motivo del reembolso.");
   }
 
-  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
-  if (!order) throw new Error("Orden no encontrada.");
-  if (order.status === "refunded") return; // idempotente: ya se reembolsó antes
-  if (order.status !== "paid") {
+  // Chequeo rápido fuera de la transacción, solo para responder rápido en los
+  // casos "no existe" / "nunca se pagó" sin pagar el costo de abrir una tx.
+  // El chequeo de "ya está refunded" (el que importa para no duplicar el
+  // envío del email bajo concurrencia) se repite DENTRO de la transacción —
+  // ver el comentario ahí abajo.
+  const [orderPrecheck] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!orderPrecheck) throw new Error("Orden no encontrada.");
+  if (orderPrecheck.status !== "paid" && orderPrecheck.status !== "refunded") {
     throw new Error("Solo se pueden reembolsar órdenes pagadas.");
   }
 
-  const pdfKeyAEliminar = await db.transaction(async (tx) => {
+  const { alreadyRefunded, pdfKeyAEliminar } = await db.transaction(async (tx) => {
+    // Mismo patrón que `aprobarPago` en billing/actions.ts: el SELECT que
+    // decide la idempotencia se hace DENTRO de la transacción, no antes. Si
+    // dos llamadas a revocarAcceso para la misma orden se solapan (doble
+    // clic), la segunda transacción bloquea en el UPDATE de `orders` hasta
+    // que la primera confirma; al reanudarse ve `status = "refunded"` y
+    // devuelve `alreadyRefunded: true` sin tocar nada más — así solo una de
+    // las dos llamadas llega al bloque de `sendEmail` de más abajo.
+    const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+    if (!order) throw new Error("Orden no encontrada.");
+    if (order.status === "refunded") {
+      return { alreadyRefunded: true, pdfKeyAEliminar: null as string | null };
+    }
+    if (order.status !== "paid") {
+      throw new Error("Solo se pueden reembolsar órdenes pagadas.");
+    }
+
     await tx.update(orders).set({ status: "refunded" }).where(eq(orders.id, orderId));
 
     const [enr] = await tx.select({ id: enrollments.id })
@@ -39,10 +59,14 @@ export async function revocarAcceso(orderId: string, motivo: string): Promise<vo
         .where(eq(instructorEarnings.orderItemId, item.id));
     }
 
-    if (!enr) return null;
+    if (!enr) return { alreadyRefunded: false, pdfKeyAEliminar: null as string | null };
     const resultado = await revocarCertificadoTx(tx, enr.id, motivo);
-    return resultado?.pdfKey ?? null;
+    return { alreadyRefunded: false, pdfKeyAEliminar: resultado?.pdfKey ?? null };
   });
+
+  // Idempotente: esta llamada llegó tarde (la orden ya estaba refunded), no
+  // reenviamos el email ni revalidamos — no hubo ningún efecto nuevo.
+  if (alreadyRefunded) return;
 
   if (pdfKeyAEliminar) {
     try {
@@ -53,7 +77,7 @@ export async function revocarAcceso(orderId: string, motivo: string): Promise<vo
   }
 
   const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
-  const [buyer] = await db.select().from(user).where(eq(user.id, order.userId)).limit(1);
+  const [buyer] = await db.select().from(user).where(eq(user.id, orderPrecheck.userId)).limit(1);
   if (item && buyer) {
     const { subject, html } = refundProcessedTemplate({
       name: buyer.name, courseTitle: item.titleSnapshot, motivo: motivo.trim(),
