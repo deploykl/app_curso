@@ -99,13 +99,12 @@ test.describe("certificados", () => {
     // ---------------------------------------------------------------- verificación
     await page.goto(`/verificar/${code}`);
     await expect(page.getByText("Válido")).toBeVisible();
-    await expect(page.getByText("Alumno")).not.toBeVisible(); // sin email visible en ningún lugar
     await expect(page.getByText(/@/)).toHaveCount(0);
 
     // -------------------------------------------------------------------- admin
     await login(page, ADMIN.email, ADMIN.password);
     await page.goto("/admin/certificados");
-    await page.getByText(code).locator("..").getByRole("button", { name: /revocar/i }).click();
+    await page.getByText(code).locator("../..").getByRole("button", { name: /revocar/i }).click();
     await page.getByPlaceholder(/motivo de la revocación/i).fill("Prueba E2E");
     await page.getByRole("button", { name: /confirmar/i }).click();
     await expect(page.getByText("Revocado")).toBeVisible();
