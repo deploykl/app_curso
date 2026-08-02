@@ -153,9 +153,20 @@ export async function aprobarPago(orderId: string) {
 
     await tx.update(orders).set({ status: "paid", paidAt: now }).where(eq(orders.id, orderId));
 
+    // Si el alumno ya tenía una inscripción para este curso (por ejemplo,
+    // una previamente reembolsada por `revocarAcceso`), el UNIQUE
+    // (userId, courseId) hace que el INSERT choque. Reactivamos esa fila en
+    // vez de descartar el conflicto: si usáramos onConflictDoNothing, la
+    // fila vieja se quedaría con status "refunded" y el orderId de la orden
+    // reembolsada, dejando al alumno pagando sin acceso (todos los guards
+    // filtran por status === "active") y a `revocarAcceso` sin forma de
+    // encontrar esta inscripción por la orden nueva.
     await tx.insert(enrollments)
       .values({ userId: order.userId, courseId: item.courseId, orderId: order.id, status: "active" })
-      .onConflictDoNothing({ target: [enrollments.userId, enrollments.courseId] });
+      .onConflictDoUpdate({
+        target: [enrollments.userId, enrollments.courseId],
+        set: { status: "active", orderId: order.id, enrolledAt: now },
+      });
 
     const { commissionCents, netCents } = computeCommission(item.unitPriceCents, item.commissionRate);
     const availableAt = new Date(now.getTime() + EARNING_AVAILABLE_DAYS * 24 * 60 * 60 * 1000);

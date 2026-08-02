@@ -22,8 +22,14 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/modules/notifications/mailer", () => ({
   sendEmail: vi.fn(async () => {}),
 }));
+vi.mock("@/lib/r2", () => ({
+  presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
+  presignPut: vi.fn(async () => "https://r2.test/put"),
+  deleteObject: vi.fn(async () => {}),
+}));
 
 const { aprobarPago, rechazarPago, submitPaymentProof } = await import("@/modules/billing/actions");
+const { revocarAcceso } = await import("@/modules/refunds/actions");
 const { sendEmail } = await import("@/modules/notifications/mailer");
 
 async function setupOrder() {
@@ -150,6 +156,46 @@ describe("aprobarPago", () => {
 
     spy.mockRestore();
     void original;
+  });
+
+  it("reactiva el acceso al recomprar un curso previamente reembolsado (regresión C2)", async () => {
+    // 1. Primera compra: se aprueba y queda una inscripción activa.
+    await aprobarPago(orderId);
+
+    // 2. El admin reembolsa esa orden: la inscripción pasa a "refunded"
+    //    pero la fila (userId, courseId) no se borra (unique constraint).
+    await revocarAcceso(orderId, "El alumno solicitó reembolso.");
+
+    const [refundedEnr] = await db.select().from(enrollments)
+      .where(eq(enrollments.userId, studentId));
+    expect(refundedEnr.status).toBe("refunded");
+    expect(refundedEnr.orderId).toBe(orderId);
+
+    // 3. El alumno vuelve a comprar el mismo curso: nueva orden, nuevo comprobante.
+    const [order2] = await db.insert(orders).values({
+      userId: studentId, orderNumber: "PED-2026-9002",
+      subtotalCents: 10000, totalCents: 10000, status: "pending",
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+    }).returning();
+
+    await db.insert(orderItems).values({
+      orderId: order2.id, courseId: cursoId, instructorId: profId, titleSnapshot: "Curso",
+      unitPriceCents: 10000, commissionRate: "30.00", commissionCents: 3000, netCents: 7000,
+    });
+
+    await db.insert(paymentProofs).values({
+      orderId: order2.id, method: "yape", payerFullName: "Alumno", payerDni: "12345678",
+      operationNumber: "OP-RECOMPRA", declaredAmountCents: 10000, transferredAt: new Date(),
+      proofFileKey: "payment-proofs/x/2.png", status: "pending",
+    });
+
+    // 4. El admin aprueba la orden nueva: el acceso debe reactivarse.
+    await aprobarPago(order2.id);
+
+    const enrollmentsRows = await db.select().from(enrollments).where(eq(enrollments.userId, studentId));
+    expect(enrollmentsRows).toHaveLength(1);
+    expect(enrollmentsRows[0].status).toBe("active");
+    expect(enrollmentsRows[0].orderId).toBe(order2.id);
   });
 });
 
