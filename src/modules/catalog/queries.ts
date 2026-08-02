@@ -1,14 +1,26 @@
-import { and, asc, count, eq, ilike, sql } from "drizzle-orm";
+import { and, asc, count, countDistinct, eq, ilike, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, categories, classSessions, instructorProfiles, user } from "@/db/schema";
+import {
+  courses,
+  categories,
+  certificates,
+  classSessions,
+  enrollments,
+  instructorProfiles,
+  user,
+} from "@/db/schema";
 
 export interface CourseRow {
   id: string;
   slug: string;
   title: string;
+  subtitle: string | null;
+  level: "basico" | "intermedio" | "avanzado";
+  categoryName: string | null;
   status: "draft" | "published" | "archived";
   priceCents: number;
   sessionCount: number;
+  enrolledCount: number;
 }
 
 export async function listInstructorCourses(instructorId: string): Promise<CourseRow[]> {
@@ -17,17 +29,29 @@ export async function listInstructorCourses(instructorId: string): Promise<Cours
       id: courses.id,
       slug: courses.slug,
       title: courses.title,
+      subtitle: courses.subtitle,
+      level: courses.level,
+      categoryName: categories.name,
       status: courses.status,
       priceCents: courses.priceCents,
-      sessionCount: count(classSessions.id),
+      sessionCount: countDistinct(classSessions.id),
+      enrolledCount: countDistinct(
+        sql`case when ${enrollments.status} = 'active' then ${enrollments.id} end`
+      ),
     })
     .from(courses)
+    .leftJoin(categories, eq(categories.id, courses.categoryId))
     .leftJoin(classSessions, eq(classSessions.courseId, courses.id))
+    .leftJoin(enrollments, eq(enrollments.courseId, courses.id))
     .where(eq(courses.instructorId, instructorId))
-    .groupBy(courses.id)
+    .groupBy(courses.id, categories.name)
     .orderBy(courses.createdAt);
 
-  return rows.map((r) => ({ ...r, sessionCount: Number(r.sessionCount) }));
+  return rows.map((r) => ({
+    ...r,
+    sessionCount: Number(r.sessionCount),
+    enrolledCount: Number(r.enrolledCount),
+  }));
 }
 
 export async function getCourseById(courseId: string) {
@@ -113,6 +137,33 @@ export async function listPublishedCourses(filter: {
     .orderBy(asc(courses.title));
 
   return rows.map((r) => ({ ...r, sessionCount: Number(r.sessionCount) }));
+}
+
+export interface LandingStats {
+  students: number;
+  courses: number;
+  certificates: number;
+}
+
+/**
+ * Cifras reales para la banda de social proof del landing.
+ * El componente decide cuáles mostrar comparándolas con STATS_FLOOR.
+ */
+export async function getLandingStats(): Promise<LandingStats> {
+  const [students, published, issued] = await Promise.all([
+    db
+      .select({ value: countDistinct(enrollments.userId) })
+      .from(enrollments)
+      .where(eq(enrollments.status, "active")),
+    db.select({ value: count() }).from(courses).where(eq(courses.status, "published")),
+    db.select({ value: count() }).from(certificates).where(isNull(certificates.revokedAt)),
+  ]);
+
+  return {
+    students: Number(students[0]?.value ?? 0),
+    courses: Number(published[0]?.value ?? 0),
+    certificates: Number(issued[0]?.value ?? 0),
+  };
 }
 
 export async function getPublicCourse(slug: string): Promise<PublicCourse | null> {

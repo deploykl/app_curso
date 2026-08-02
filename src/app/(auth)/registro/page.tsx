@@ -1,14 +1,20 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AlertCircleIcon, EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { TurnstileWidget } from "@/components/turnstile-widget";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function RegistroPage() {
   const router = useRouter();
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,17 +36,86 @@ export default function RegistroPage() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto flex max-w-sm flex-col gap-4 py-12">
-      <h1 className="text-2xl font-semibold">Crear cuenta</h1>
-      <input name="name" required placeholder="Nombre completo" className="rounded border p-2" />
-      <input name="email" type="email" required placeholder="Correo" className="rounded border p-2" />
-      <input name="password" type="password" required minLength={8}
-             placeholder="Contraseña (mín. 8)" className="rounded border p-2" />
-      <TurnstileWidget onToken={setToken} />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button disabled={loading} className="rounded bg-black p-2 text-white disabled:opacity-50">
-        {loading ? "Creando..." : "Crear cuenta"}
-      </button>
-    </form>
+    <div className="glass rounded-2xl p-8">
+      <h1 className="text-2xl font-bold tracking-[-0.02em] text-foreground">Crear cuenta</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        Es gratis. Pagas solo cuando te inscribes a un curso.
+      </p>
+
+      <form onSubmit={onSubmit} className="mt-7 flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="name">Nombre completo</Label>
+          <Input
+            id="name"
+            name="name"
+            required
+            autoComplete="name"
+            placeholder="Nombre completo"
+            className="h-10"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email">Correo</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="Correo"
+            className="h-10"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">Contraseña</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="Contraseña (mín. 8)"
+              className="h-10 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              className="absolute inset-y-0 right-0 grid w-10 place-items-center text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showPassword ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+            </button>
+          </div>
+        </div>
+
+        <TurnstileWidget onToken={setToken} />
+
+        {error && (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+          >
+            <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" size="xl" disabled={loading} className="mt-1 w-full">
+          {loading && <Loader2Icon className="animate-spin" />}
+          {loading ? "Creando..." : "Crear cuenta"}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        ¿Ya tienes cuenta?{" "}
+        <Link href="/login" className="font-medium text-primary hover:underline">
+          Iniciar sesión
+        </Link>
+      </p>
+    </div>
   );
 }

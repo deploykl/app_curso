@@ -7,10 +7,14 @@ import {
   examAttempts, examAttemptQuestions, examAttemptAnswers, certificates,
 } from "@/db/schema";
 
-const r2Send = vi.fn(async (_command: { input: Record<string, unknown> }) => ({}));
+const putObject = vi.fn<(key: string, body: Buffer, contentType: string) => Promise<void>>(
+  async () => {}
+);
 
 vi.mock("@/lib/r2", () => ({
-  r2: { send: r2Send },
+  usingR2: false,
+  putObject,
+  getObject: vi.fn(async () => Buffer.from("")),
   presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
   presignPut: vi.fn(async () => "https://r2.test/put"),
   deleteObject: vi.fn(async () => {}),
@@ -19,7 +23,7 @@ vi.mock("@/lib/r2", () => ({
 let enrollmentId: string;
 
 beforeEach(async () => {
-  r2Send.mockClear();
+  putObject.mockClear();
   await db.delete(certificates);
   await db.delete(examAttemptAnswers);
   await db.delete(examAttemptQuestions);
@@ -49,7 +53,7 @@ beforeEach(async () => {
 });
 
 describe("generarYSubirPdf", () => {
-  it("genera un PDF y devuelve una key de R2 (R2 mockeado, sin credenciales reales)", async () => {
+  it("genera un PDF y lo sube al almacenamiento (mockeado)", async () => {
     const { generarYSubirPdf } = await import("@/modules/certification/pdf");
 
     const key = await generarYSubirPdf({
@@ -64,17 +68,16 @@ describe("generarYSubirPdf", () => {
     });
 
     expect(key).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
-    expect(r2Send).toHaveBeenCalledTimes(1);
-    const command = r2Send.mock.calls[0][0];
-    expect(command.input.Bucket).toBeDefined();
-    expect(command.input.Key).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
-    expect(command.input.ContentType).toBe("application/pdf");
-    expect(Buffer.isBuffer(command.input.Body)).toBe(true);
+    expect(putObject).toHaveBeenCalledTimes(1);
+    const [subidaKey, body, contentType] = putObject.mock.calls[0];
+    expect(subidaKey).toBe("certificados/AB23-CD45/pdf/certificado.pdf");
+    expect(contentType).toBe("application/pdf");
+    expect(Buffer.isBuffer(body)).toBe(true);
   });
 });
 
 describe("GET /api/certificados/[code]/pdf", () => {
-  it("devuelve 404 para un certificado revocado sin tocar R2", async () => {
+  it("devuelve 404 para un certificado revocado sin tocar el almacenamiento", async () => {
     const [cert] = await db.insert(certificates).values({
       enrollmentId,
       code: "REVOKED-1",

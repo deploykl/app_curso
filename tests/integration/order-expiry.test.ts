@@ -62,7 +62,7 @@ async function crearOrdenVencida(withPendingProof: boolean) {
   if (withPendingProof) {
     await db.insert(paymentProofs).values({
       orderId: o.id, method: "yape", payerFullName: "Alumno", payerDni: "12345678",
-      operationNumber: `OP-${Math.random()}`, declaredAmountCents: 100, transferredAt: new Date(),
+      declaredAmountCents: 100,
       proofFileKey: "payment-proofs/x/1.png", status: "pending",
     });
   }

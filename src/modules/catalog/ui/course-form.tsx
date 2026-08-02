@@ -36,10 +36,21 @@ export function CourseForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
+  const initialHoras = initialValues?.estimatedHours
+    ? Math.floor(Number(initialValues.estimatedHours))
+    : undefined;
+  const initialMinutos = initialValues?.estimatedHours
+    ? Math.round((Number(initialValues.estimatedHours) % 1) * 60)
+    : undefined;
+
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const form = new FormData(e.currentTarget);
+
+    const horas = Number(form.get("estimatedHoursH") ?? "0") || 0;
+    const minutos = Number(form.get("estimatedHoursM") ?? "0") || 0;
+    const duracion = horas + minutos / 60;
 
     const raw = {
       title: String(form.get("title") ?? ""),
@@ -48,7 +59,7 @@ export function CourseForm({
       categoryId: String(form.get("categoryId") ?? "") || undefined,
       level: String(form.get("level") ?? "basico"),
       priceSoles: String(form.get("priceSoles") ?? "0"),
-      estimatedHours: String(form.get("estimatedHours") ?? "") || undefined,
+      estimatedHours: duracion > 0 ? duracion : undefined,
     };
 
     startTransition(async () => {
@@ -134,15 +145,33 @@ export function CourseForm({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="estimatedHours">Horas estimadas</Label>
-          <Input
-            id="estimatedHours"
-            name="estimatedHours"
-            type="number"
-            min={0}
-            step="0.5"
-            defaultValue={initialValues?.estimatedHours ?? ""}
-          />
+          <Label htmlFor="estimatedHoursH">Horas estimadas</Label>
+          <div className="flex items-center gap-1.5">
+            <Input
+              id="estimatedHoursH"
+              name="estimatedHoursH"
+              type="number"
+              min={0}
+              max={999}
+              step={1}
+              placeholder="HH"
+              className="w-full"
+              defaultValue={initialHoras}
+            />
+            <span className="text-sm text-muted-foreground">h</span>
+            <Input
+              id="estimatedHoursM"
+              name="estimatedHoursM"
+              type="number"
+              min={0}
+              max={59}
+              step={1}
+              placeholder="MM"
+              className="w-full"
+              defaultValue={initialMinutos}
+            />
+            <span className="text-sm text-muted-foreground">min</span>
+          </div>
         </div>
       </div>
 

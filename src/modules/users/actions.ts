@@ -2,7 +2,14 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { assertRole } from "@/modules/auth/session";
-import { crearUsuario, actualizarRolUsuario, establecerActivoUsuario, UsuarioYaExisteError, type RolUsuario } from "./service";
+import {
+  crearUsuario,
+  actualizarRolUsuario,
+  establecerActivoUsuario,
+  establecerComisionInstructor,
+  UsuarioYaExisteError,
+  type RolUsuario,
+} from "./service";
 
 const crearUsuarioSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -48,5 +55,15 @@ export async function establecerActivoUsuarioAction(targetUserId: string, active
   if (admin.id === targetUserId) throw new Error("No puedes desactivar tu propia cuenta.");
 
   await establecerActivoUsuario(targetUserId, active);
+  revalidatePath("/admin/usuarios");
+}
+
+export async function establecerComisionInstructorAction(targetUserId: string, rate: number): Promise<void> {
+  await assertRole(["admin"]);
+
+  const parsed = z.coerce.number().min(0).max(100).multipleOf(0.01).safeParse(rate);
+  if (!parsed.success) throw new Error("La comisión debe ser un porcentaje entre 0 y 100.");
+
+  await establecerComisionInstructor(targetUserId, parsed.data);
   revalidatePath("/admin/usuarios");
 }

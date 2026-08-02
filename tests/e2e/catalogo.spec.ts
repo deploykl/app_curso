@@ -43,17 +43,14 @@ test.describe("panel de instructor", () => {
     await page.getByRole("button", { name: /publicar/i }).click();
     await expect(page.getByText(/al menos una sesión/i)).toBeVisible();
 
-    // Añadir una sesión
-    await page.getByRole("link", { name: /sesiones/i }).click();
-    await page.waitForURL(/\/sesiones$/);
-    await page.getByLabel("Título").fill("Clase E2E");
-    await page.getByLabel(/fecha/i).fill("2026-12-01T10:00");
-    await page.getByLabel(/duración/i).fill("90");
-    await page.getByRole("button", { name: /guardar|agregar/i }).click();
+    // Añadir una sesión (ahora se agrega directo en la página del curso)
+    await page.getByLabel("Título", { exact: true }).nth(1).fill("Clase E2E");
+    await page.getByLabel(/fecha y hora/i).fill("2026-12-01T10:00");
+    await page.getByLabel(/duración \(min\)/i).fill("90");
+    await page.getByRole("button", { name: /agregar sesión/i }).click();
     await expect(page.getByText("Clase E2E")).toBeVisible();
 
     // Ahora sí publica
-    await page.goBack();
     await page.getByRole("button", { name: /publicar/i }).click();
     await expect(page.getByText(/publicado/i)).toBeVisible();
   });

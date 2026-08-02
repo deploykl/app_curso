@@ -15,6 +15,8 @@ export const payouts = pgTable("payouts", {
   paidAt: timestamp("paid_at", { withTimezone: true }),
   reference: text("reference"),
   notes: text("notes"),
+  /** Captura del Yape/Plin/transferencia hecho al instructor — la evidencia del pago. */
+  proofFileKey: text("proof_file_key"),
 });
 
 export const instructorEarnings = pgTable("instructor_earnings", {

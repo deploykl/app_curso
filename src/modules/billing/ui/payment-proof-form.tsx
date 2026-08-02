@@ -5,10 +5,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatPEN } from "@/lib/money";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 import { submitPaymentProof } from "@/modules/billing/actions";
 
-export function PaymentProofForm({ orderId, orderNumber }: { orderId: string; orderNumber: string }) {
+export function PaymentProofForm({
+  orderId,
+  orderNumber,
+  totalCents,
+}: {
+  orderId: string;
+  orderNumber: string;
+  totalCents: number;
+}) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [token, setToken] = useState("");
@@ -44,9 +53,6 @@ export function PaymentProofForm({ orderId, orderNumber }: { orderId: string; or
         method: String(form.get("method")),
         payerFullName: String(form.get("payerFullName")),
         payerDni: String(form.get("payerDni")),
-        operationNumber: String(form.get("operationNumber")),
-        declaredAmountCents: Math.round(Number(form.get("declaredAmount")) * 100),
-        transferredAtLocal: String(form.get("transferredAtLocal")),
         fileKey: presign.key,
         turnstileToken: token,
       });
@@ -86,20 +92,9 @@ export function PaymentProofForm({ orderId, orderNumber }: { orderId: string; or
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="operationNumber">Nº de operación</Label>
-          <Input id="operationNumber" name="operationNumber" required />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="declaredAmount">Monto pagado (S/)</Label>
-          <Input id="declaredAmount" name="declaredAmount" type="number" min={0} step="0.01" required />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="transferredAtLocal">Fecha y hora del pago</Label>
-        <Input id="transferredAtLocal" name="transferredAtLocal" type="datetime-local" required />
+      <div className="flex items-baseline justify-between rounded-md border border-border bg-muted/40 px-3 py-2.5">
+        <span className="text-sm text-muted-foreground">Monto a pagar</span>
+        <span className="font-semibold">{formatPEN(totalCents)}</span>
       </div>
 
       <div className="flex flex-col gap-2">

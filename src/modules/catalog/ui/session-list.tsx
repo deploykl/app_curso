@@ -1,18 +1,11 @@
 "use client";
-import { Fragment, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CalendarDays, ChevronDown, ChevronUp, Clock, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/components/ui/table";
 import { formatLima } from "@/lib/datetime";
 import { deleteClassSession, reorderClassSessions, setRecordingUrl } from "@/modules/catalog/session-actions";
 import { MaterialManager, type MaterialRow } from "@/modules/materials/ui/material-manager";
@@ -40,7 +33,7 @@ function toLocalInputValue(date: Date): string {
   return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
 }
 
-function RecordingCell({ sessionId, recordingUrl }: { sessionId: string; recordingUrl: string | null }) {
+function RecordingField({ sessionId, recordingUrl }: { sessionId: string; recordingUrl: string | null }) {
   const router = useRouter();
   const [value, setValue] = useState(recordingUrl ?? "");
   const [isPending, startTransition] = useTransition();
@@ -62,8 +55,8 @@ function RecordingCell({ sessionId, recordingUrl }: { sessionId: string; recordi
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="https://..."
-        className="h-8 w-48"
+        placeholder="Enlace de la grabación (https://...)"
+        className="h-8"
       />
       <Button type="button" size="sm" variant="outline" disabled={isPending} onClick={save}>
         Guardar
@@ -102,91 +95,116 @@ export function SessionList({ courseId, sessions }: { courseId: string; sessions
   }
 
   if (sessions.length === 0) {
-    return <p className="text-muted-foreground">Todavía no hay sesiones.</p>;
+    return (
+      <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        Todavía no hay sesiones. Agrega la primera abajo.
+      </p>
+    );
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nº</TableHead>
-            <TableHead>Título</TableHead>
-            <TableHead>Fecha y hora (Lima)</TableHead>
-            <TableHead>Duración</TableHead>
-            <TableHead>Zoom</TableHead>
-            <TableHead>Grabación</TableHead>
-            <TableHead>Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sessions.map((s, i) => {
-            const startsAt = new Date(s.startsAt);
-            return (
-              <Fragment key={s.id}>
-                <TableRow>
-                  <TableCell>{i + 1}</TableCell>
-                  <TableCell className="font-medium">
-                    {s.title}
-                    {s.isFreePreview && <Badge variant="secondary" className="ml-2">Preview</Badge>}
-                  </TableCell>
-                  <TableCell>{formatLima(startsAt)}</TableCell>
-                  <TableCell>{s.durationMinutes} min</TableCell>
-                  <TableCell>{s.zoomUrl ? "✓" : "—"}</TableCell>
-                  <TableCell>
-                    <RecordingCell sessionId={s.id} recordingUrl={s.recordingUrl} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button type="button" size="icon-sm" variant="ghost" disabled={isPending || i === 0} onClick={() => move(i, -1)}>
-                        ↑
-                      </Button>
-                      <Button type="button" size="icon-sm" variant="ghost" disabled={isPending || i === sessions.length - 1} onClick={() => move(i, 1)}>
-                        ↓
-                      </Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
-                        Editar
-                      </Button>
-                      <Button type="button" size="sm" variant="outline" onClick={() => setMaterialsId(materialsId === s.id ? null : s.id)}>
-                        Materiales ({s.materials.length})
-                      </Button>
-                      <Button type="button" size="sm" variant="destructive" disabled={isPending} onClick={() => remove(s.id)}>
-                        Borrar
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                {materialsId === s.id && (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <MaterialManager sessionId={s.id} materials={s.materials} />
-                    </TableCell>
-                  </TableRow>
-                )}
-                {editingId === s.id && (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <SessionForm
-                        courseId={courseId}
-                        sessionId={s.id}
-                        initialValues={{
-                          title: s.title,
-                          descriptionMd: s.descriptionMd,
-                          startsAtLocal: toLocalInputValue(startsAt),
-                          durationMinutes: s.durationMinutes,
-                          zoomUrl: s.zoomUrl,
-                          isFreePreview: s.isFreePreview,
-                        }}
-                        onDone={() => setEditingId(null)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </Fragment>
-            );
-          })}
-        </TableBody>
-      </Table>
+    <div className="flex flex-col gap-2.5">
+      {sessions.map((s, i) => {
+        const startsAt = new Date(s.startsAt);
+        const isEditing = editingId === s.id;
+        const isMaterials = materialsId === s.id;
+
+        return (
+          <div key={s.id} className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="flex flex-wrap items-center gap-3 p-3">
+              <div className="flex flex-col gap-0.5">
+                <Button
+                  type="button" size="icon-sm" variant="ghost" className="h-4"
+                  disabled={isPending || i === 0} onClick={() => move(i, -1)}
+                  aria-label="Subir"
+                >
+                  <ChevronUp className="size-3.5" />
+                </Button>
+                <Button
+                  type="button" size="icon-sm" variant="ghost" className="h-4"
+                  disabled={isPending || i === sessions.length - 1} onClick={() => move(i, 1)}
+                  aria-label="Bajar"
+                >
+                  <ChevronDown className="size-3.5" />
+                </Button>
+              </div>
+
+              <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-bold text-muted-foreground">
+                {i + 1}
+              </div>
+
+              <div className="min-w-40 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{s.title}</span>
+                  {s.isFreePreview && <Badge variant="secondary">Preview</Badge>}
+                  {s.recordingUrl && <Badge className="bg-success/15 text-success">Grabada</Badge>}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarDays className="size-3.5 opacity-60" />
+                    {formatLima(startsAt)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="size-3.5 opacity-60" />
+                    {s.durationMinutes} min
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Video className="size-3.5 opacity-60" />
+                    {s.zoomUrl ? "Enlace listo" : "Sin enlace"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Button
+                  type="button" size="sm" variant="outline"
+                  onClick={() => { setMaterialsId(isMaterials ? null : s.id); setEditingId(null); }}
+                >
+                  Materiales ({s.materials.length})
+                </Button>
+                <Button
+                  type="button" size="sm" variant="outline"
+                  onClick={() => { setEditingId(isEditing ? null : s.id); setMaterialsId(null); }}
+                >
+                  Editar
+                </Button>
+                <Button type="button" size="sm" variant="destructive" disabled={isPending} onClick={() => remove(s.id)}>
+                  Borrar
+                </Button>
+              </div>
+            </div>
+
+            {!isEditing && !isMaterials && (
+              <div className="border-t border-border bg-muted/30 px-3 py-2">
+                <RecordingField sessionId={s.id} recordingUrl={s.recordingUrl} />
+              </div>
+            )}
+
+            {isMaterials && (
+              <div className="border-t border-border p-3">
+                <MaterialManager sessionId={s.id} materials={s.materials} />
+              </div>
+            )}
+
+            {isEditing && (
+              <div className="border-t border-border p-3">
+                <SessionForm
+                  courseId={courseId}
+                  sessionId={s.id}
+                  initialValues={{
+                    title: s.title,
+                    startsAtLocal: toLocalInputValue(startsAt),
+                    durationMinutes: s.durationMinutes,
+                    zoomUrl: s.zoomUrl,
+                    isFreePreview: s.isFreePreview,
+                  }}
+                  onDone={() => setEditingId(null)}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

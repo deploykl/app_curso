@@ -3,9 +3,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPublicCourse } from "@/modules/catalog/queries";
 import { getSessionUser } from "@/modules/auth/session";
+import { isEnrolled } from "@/modules/auth/guards";
+import { findPendingOrderForCourse } from "@/modules/billing/queries";
+import { EnrollButton } from "@/modules/billing/ui/enroll-button";
 import { formatPEN } from "@/lib/money";
 import { formatLima } from "@/lib/datetime";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 
 const LEVEL_LABEL: Record<string, string> = {
   basico: "Básico",
@@ -33,6 +37,59 @@ export default async function CursoDetallePage({ params }: { params: Promise<{ s
   if (!course) notFound();
 
   const sessionUser = await getSessionUser();
+
+  // El estado del botón de compra se decide en el servidor: sin sesión, ya
+  // inscrito, con una orden pendiente sin pagar, o listo para comprar.
+  const yaInscrito = sessionUser ? await isEnrolled(sessionUser.id, course.id) : false;
+  const ordenPendiente =
+    sessionUser && !yaInscrito
+      ? await findPendingOrderForCourse(sessionUser.id, course.id)
+      : null;
+
+  let cta: React.ReactNode;
+  if (!sessionUser) {
+    cta = (
+      <Link
+        href={`/login?redirect=${encodeURIComponent(`/cursos/${course.slug}`)}`}
+        className={buttonVariants({ size: "xl" })}
+      >
+        Inscribirme
+      </Link>
+    );
+  } else if (yaInscrito) {
+    cta = (
+      <Link href={`/curso/${course.slug}/aprender`} className={buttonVariants({ size: "xl" })}>
+        Ir al curso
+      </Link>
+    );
+  } else if (ordenPendiente) {
+    cta = (
+      <div className="flex flex-col items-end gap-1.5">
+        <Link
+          href={`/pago/${ordenPendiente.orderNumber}`}
+          className={buttonVariants({ size: "xl" })}
+        >
+          Continuar mi pago
+        </Link>
+        <span className="text-xs text-muted-foreground">
+          Tienes la orden {ordenPendiente.orderNumber} pendiente de pago.
+        </span>
+      </div>
+    );
+  } else if (!sessionUser.emailVerified) {
+    cta = (
+      <div className="flex flex-col items-end gap-1.5">
+        <span className={buttonVariants({ size: "xl", variant: "outline" })}>
+          Verifica tu correo
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Revisa tu bandeja para activar la cuenta y poder inscribirte.
+        </span>
+      </div>
+    );
+  } else {
+    cta = <EnrollButton courseId={course.id} />;
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
@@ -70,17 +127,9 @@ export default async function CursoDetallePage({ params }: { params: Promise<{ s
         ))}
       </ol>
 
-      <div className="mt-10 flex items-center justify-between rounded-lg border border-border p-6">
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-6">
         <span className="text-2xl font-semibold">{formatPEN(course.priceCents)}</span>
-        {sessionUser ? (
-          <span className="rounded-md bg-muted px-6 py-3 text-sm font-medium text-muted-foreground">
-            Próximamente
-          </span>
-        ) : (
-          <Link href="/login" className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
-            Inscribirme
-          </Link>
-        )}
+        {cta}
       </div>
     </div>
   );

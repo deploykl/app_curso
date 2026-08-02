@@ -1,25 +1,20 @@
 import { env } from "@/env";
+import { escapeHtml, renderBoth } from "./layout";
 
 export function verifyEmailTemplate(input: { name: string; url: string }) {
   return {
     subject: `Verifica tu correo — ${env.ACADEMIA_NAME}`,
-    html: `
-<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px">
-  <h1 style="font-size:20px">Hola ${escapeHtml(input.name)},</h1>
-  <p>Confirma tu correo para activar tu cuenta en <strong>${escapeHtml(env.ACADEMIA_NAME)}</strong>.</p>
-  <p style="margin:28px 0">
-    <a href="${input.url}"
-       style="background:#111;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">
-      Verificar mi correo
-    </a>
-  </p>
-  <p style="color:#666;font-size:13px">El enlace vence en 24 horas. Si no creaste esta cuenta, ignora este mensaje.</p>
-</div>`.trim(),
+    ...renderBoth({
+      preheader: `Confirma tu correo para activar tu cuenta en ${env.ACADEMIA_NAME}.`,
+      heading: `Hola ${input.name}, confirma tu correo`,
+      body: [
+        `Solo falta un paso para activar tu cuenta en <strong style="color:#221f38">${escapeHtml(
+          env.ACADEMIA_NAME
+        )}</strong> y poder inscribirte a los cursos en vivo.`,
+      ],
+      cta: { label: "Verificar mi correo", url: input.url },
+      footnote:
+        "El enlace vence en 24 horas. Si no creaste esta cuenta, puedes ignorar este mensaje.",
+    }),
   };
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)
-  );
 }

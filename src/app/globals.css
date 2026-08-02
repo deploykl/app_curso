@@ -63,6 +63,55 @@
   --spacing-row-comfortable: 0.75rem;
 }
 
+/* Animaciones del landing — sutiles, todas se desactivan con prefers-reduced-motion */
+@theme {
+  --animate-pulse-glow: pulse-glow 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-aurora-drift: aurora-drift 18s ease-in-out infinite alternate;
+  --animate-shimmer: shimmer 2.8s linear infinite;
+  --animate-count-pop: count-pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  @keyframes count-pop {
+    0% {
+      transform: translateY(-30%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.15;
+      transform: scale(1.9);
+    }
+  }
+
+  @keyframes aurora-drift {
+    from {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(4%, -3%, 0) scale(1.12);
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: -150% 0;
+    }
+    to {
+      background-position: 250% 0;
+    }
+  }
+}
+
 :root {
   --background: oklch(0.99 0.003 264);
   --foreground: oklch(0.24 0.03 278);
@@ -175,5 +224,99 @@
   }
   html {
     @apply font-sans;
+  }
+  /* El header público es sticky; que los anclas (#como-funciona) no queden debajo */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  /*
+    Estado inicial de los elementos que anima <Reveal> con GSAP.
+    Solo se aplica si el usuario acepta movimiento: con reduced-motion, o si el
+    JS no llega a ejecutarse, el contenido queda visible tal cual lo renderizó
+    el servidor. El <noscript> de layout.tsx cubre el caso sin JavaScript.
+  */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal="item"] {
+      opacity: 0;
+    }
+    [data-reveal="stagger"] > * {
+      opacity: 0;
+    }
+  }
+
+  /* Tarjeta de vidrio: base visual de todo el landing */
+  .glass {
+    background-color: color-mix(in oklch, var(--card) 65%, transparent);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow:
+      0 1px 0 0 color-mix(in oklch, var(--foreground) 6%, transparent) inset,
+      0 12px 36px -18px color-mix(in oklch, var(--foreground) 45%, transparent);
+    border: 1px solid color-mix(in oklch, var(--foreground) 9%, transparent);
+  }
+  .dark .glass {
+    background-color: color-mix(in oklch, var(--card) 55%, transparent);
+    box-shadow:
+      0 1px 0 0 color-mix(in oklch, #fff 8%, transparent) inset,
+      0 12px 40px -18px #000;
+    border-color: color-mix(in oklch, #fff 10%, transparent);
+  }
+
+  /* Degradado de marca para la segunda línea de los titulares */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      100deg,
+      var(--primary) 0%,
+      color-mix(in oklch, var(--primary), var(--chart-2) 35%) 55%,
+      color-mix(in oklch, var(--primary), white 30%) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* El descender de la "g"/"y" se corta al recortar el fondo al texto */
+    padding-bottom: 0.12em;
+  }
+
+  /* Halos difusos del fondo aurora */
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(96px);
+    opacity: 0.28;
+    will-change: transform;
+  }
+  .dark .aurora-blob {
+    opacity: 0.2;
+    filter: blur(110px);
+  }
+
+  /* Barrido de luz sobre el borde del certificado */
+  .shimmer-line {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklch, var(--primary) 70%, transparent) 45%,
+      color-mix(in oklch, var(--chart-2) 70%, transparent) 55%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse-glow,
+    .animate-aurora-drift,
+    .animate-shimmer,
+    .animate-count-pop {
+      animation: none !important;
+    }
   }
 }

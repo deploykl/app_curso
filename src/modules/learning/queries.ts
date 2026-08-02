@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, classSessions, enrollments, sessionAttendance, sessionMaterials, exams } from "@/db/schema";
+import { courses, classSessions, enrollments, sessionAttendance, sessionMaterials, exams, categories } from "@/db/schema";
 import { assertEnrolled } from "@/modules/auth/guards";
 import { sessionState, type SessionState } from "@/lib/datetime";
 import { pickNextSession } from "./service";
@@ -9,6 +9,8 @@ export interface MyCourseCard {
   courseId: string;
   slug: string;
   title: string;
+  subtitle: string | null;
+  categoryName: string | null;
   totalSessions: number;
   attendedSessions: number;
   nextSession: { id: string; title: string; startsAt: Date; state: SessionState } | null;
@@ -21,9 +23,12 @@ export async function listMyCourses(userId: string): Promise<MyCourseCard[]> {
       courseId: enrollments.courseId,
       slug: courses.slug,
       title: courses.title,
+      subtitle: courses.subtitle,
+      categoryName: categories.name,
     })
     .from(enrollments)
     .innerJoin(courses, eq(courses.id, enrollments.courseId))
+    .leftJoin(categories, eq(categories.id, courses.categoryId))
     .where(and(eq(enrollments.userId, userId), eq(enrollments.status, "active")))
     .orderBy(asc(courses.title));
 
@@ -48,6 +53,8 @@ export async function listMyCourses(userId: string): Promise<MyCourseCard[]> {
       courseId: e.courseId,
       slug: e.slug,
       title: e.title,
+      subtitle: e.subtitle,
+      categoryName: e.categoryName,
       totalSessions: sessions.length,
       attendedSessions: attendedRows.length,
       nextSession: next

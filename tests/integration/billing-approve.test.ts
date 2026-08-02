@@ -23,6 +23,9 @@ vi.mock("@/modules/notifications/mailer", () => ({
   sendEmail: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/r2", () => ({
+  usingR2: false,
+  putObject: vi.fn(async () => {}),
+  getObject: vi.fn(async () => Buffer.from("")),
   presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
   presignPut: vi.fn(async () => "https://r2.test/put"),
   deleteObject: vi.fn(async () => {}),
@@ -78,7 +81,7 @@ async function setupOrder() {
 
   await db.insert(paymentProofs).values({
     orderId: o.id, method: "yape", payerFullName: "Alumno", payerDni: "12345678",
-    operationNumber: "OP-APROBAR", declaredAmountCents: 10000, transferredAt: new Date(),
+    declaredAmountCents: 10000,
     proofFileKey: "payment-proofs/x/1.png", status: "pending",
   });
 }
@@ -185,7 +188,7 @@ describe("aprobarPago", () => {
 
     await db.insert(paymentProofs).values({
       orderId: order2.id, method: "yape", payerFullName: "Alumno", payerDni: "12345678",
-      operationNumber: "OP-RECOMPRA", declaredAmountCents: 10000, transferredAt: new Date(),
+      declaredAmountCents: 10000,
       proofFileKey: "payment-proofs/x/2.png", status: "pending",
     });
 
@@ -218,9 +221,6 @@ describe("rechazarPago", () => {
       method: "yape",
       payerFullName: "Alumno Prueba",
       payerDni: "12345678",
-      operationNumber: "OP-APROBAR-2",
-      declaredAmountCents: 10000,
-      transferredAtLocal: "2026-08-01T10:00",
       fileKey: "payment-proofs/x/2.png",
       turnstileToken: "token-valido",
     });
@@ -230,7 +230,7 @@ describe("rechazarPago", () => {
 
     const pendingRows = rows.filter((r) => r.status === "pending");
     expect(pendingRows).toHaveLength(1);
-    expect(pendingRows[0].operationNumber).toBe("OP-APROBAR-2");
+    expect(pendingRows[0].proofFileKey).toBe("payment-proofs/x/2.png");
 
     const rejectedRows = rows.filter((r) => r.status === "rejected");
     expect(rejectedRows).toHaveLength(1);

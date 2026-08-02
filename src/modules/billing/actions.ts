@@ -6,10 +6,11 @@ import { db } from "@/db";
 import { orders, orderItems, courses, instructorProfiles, paymentProofs, enrollments, instructorEarnings, user } from "@/db/schema";
 import { requireUser, assertRole } from "@/modules/auth/session";
 import { isEnrolled } from "@/modules/auth/guards";
-import { resolveCommissionRate, limaLocalToUtc } from "@/modules/catalog/service";
+import { resolveCommissionRate } from "@/modules/catalog/service";
 import { verifyTurnstile } from "@/lib/turnstile";
-import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS, EARNING_AVAILABLE_DAYS } from "./service";
+import { computeOrderTotals, computeCommission, isCouponValid, ORDER_EXPIRES_HOURS } from "./service";
 import { nextOrderNumber, findCouponByCode } from "./queries";
+import { getPlatformSettings } from "@/modules/settings/queries";
 import { env } from "@/env";
 import { sendEmail } from "@/modules/notifications/mailer";
 import { paymentProofReceivedTemplate } from "@/modules/notifications/templates/payment-proof-received";
@@ -85,9 +86,6 @@ const proofSchema = z.object({
   method: z.enum(["yape", "plin", "transferencia"]),
   payerFullName: z.string().trim().min(3).max(160),
   payerDni: z.string().trim().min(6).max(20),
-  operationNumber: z.string().trim().min(1).max(60),
-  declaredAmountCents: z.coerce.number().int().positive(),
-  transferredAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
   fileKey: z.string().trim().min(1),
   turnstileToken: z.string(),
 });
@@ -115,22 +113,23 @@ export async function submitPaymentProof(orderId: string, raw: unknown) {
     method: input.method,
     payerFullName: input.payerFullName,
     payerDni: input.payerDni,
-    operationNumber: input.operationNumber,
-    declaredAmountCents: input.declaredAmountCents,
-    transferredAt: limaLocalToUtc(input.transferredAtLocal),
+    // El monto no se pide ni se acepta del cliente: siempre es el total de la
+    // orden. Se guarda como snapshot por si el precio del curso cambia después.
+    declaredAmountCents: order.totalCents,
     proofFileKey: input.fileKey,
     status: "pending",
   });
 
   const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
-  const { subject, html } = paymentProofReceivedTemplate({
+  const { subject, html, text } = paymentProofReceivedTemplate({
     orderNumber: order.orderNumber, courseTitle: item?.titleSnapshot ?? "",
   });
-  await sendEmail({ to: env.MAIL_FROM, template: "payment-proof-received", subject, html });
+  await sendEmail({ to: env.MAIL_FROM, template: "payment-proof-received", subject, html, text });
 }
 
 export async function aprobarPago(orderId: string) {
   const admin = await assertRole(["admin"]);
+  const { earningAvailableDays } = await getPlatformSettings();
 
   const { alreadyPaid } = await db.transaction(async (tx) => {
     const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).limit(1);
@@ -169,7 +168,7 @@ export async function aprobarPago(orderId: string) {
       });
 
     const { commissionCents, netCents } = computeCommission(item.unitPriceCents, item.commissionRate);
-    const availableAt = new Date(now.getTime() + EARNING_AVAILABLE_DAYS * 24 * 60 * 60 * 1000);
+    const availableAt = new Date(now.getTime() + earningAvailableDays * 24 * 60 * 60 * 1000);
 
     await tx.insert(instructorEarnings).values({
       orderItemId: item.id,
@@ -201,8 +200,8 @@ export async function aprobarPago(orderId: string) {
   if (!order || !item) return;
   const [buyer] = await db.select().from(user).where(eq(user.id, order.userId)).limit(1);
   if (buyer) {
-    const { subject, html } = orderApprovedTemplate({ name: buyer.name, courseTitle: item.titleSnapshot });
-    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-approved", subject, html });
+    const { subject, html, text } = orderApprovedTemplate({ name: buyer.name, courseTitle: item.titleSnapshot });
+    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-approved", subject, html, text });
   }
 }
 
@@ -226,9 +225,9 @@ export async function rechazarPago(orderId: string, reason: string) {
   const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
   const [buyer] = order ? await db.select().from(user).where(eq(user.id, order.userId)).limit(1) : [];
   if (order && item && buyer) {
-    const { subject, html } = orderRejectedTemplate({
+    const { subject, html, text } = orderRejectedTemplate({
       name: buyer.name, courseTitle: item.titleSnapshot, reason, orderNumber: order.orderNumber,
     });
-    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-rejected", subject, html });
+    await sendEmail({ to: buyer.email, userId: buyer.id, template: "order-rejected", subject, html, text });
   }
 }

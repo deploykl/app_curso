@@ -87,4 +87,3 @@ export function proofKey(orderId: string, fileName: string): string {
 }
 
 export const ORDER_EXPIRES_HOURS = 48;
-export const EARNING_AVAILABLE_DAYS = 30;

@@ -1,0 +1,1 @@
+ALTER TABLE "payouts" ADD COLUMN "proof_file_key" text;

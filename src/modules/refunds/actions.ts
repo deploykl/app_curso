@@ -79,10 +79,10 @@ export async function revocarAcceso(orderId: string, motivo: string): Promise<vo
   const [item] = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).limit(1);
   const [buyer] = await db.select().from(user).where(eq(user.id, orderPrecheck.userId)).limit(1);
   if (item && buyer) {
-    const { subject, html } = refundProcessedTemplate({
+    const { subject, html, text } = refundProcessedTemplate({
       name: buyer.name, courseTitle: item.titleSnapshot, motivo: motivo.trim(),
     });
-    await sendEmail({ to: buyer.email, userId: buyer.id, template: "refund-processed", subject, html });
+    await sendEmail({ to: buyer.email, userId: buyer.id, template: "refund-processed", subject, html, text });
   }
 
   revalidatePath("/admin/reembolsos");

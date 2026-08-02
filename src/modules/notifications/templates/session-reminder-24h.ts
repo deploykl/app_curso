@@ -1,22 +1,28 @@
 import { env } from "@/env";
+import { escapeHtml, renderBoth } from "./layout";
 
 export function sessionReminder24hTemplate(input: {
-  name: string; sessionTitle: string; startsAtLabel: string; zoomUrl: string | null;
+  name: string;
+  sessionTitle: string;
+  startsAtLabel: string;
+  zoomUrl: string | null;
 }) {
   return {
     subject: `Mañana: ${input.sessionTitle}`,
-    html: `
-<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px">
-  <h1 style="font-size:20px">Hola ${escapeHtml(input.name)},</h1>
-  <p>Tu clase <strong>${escapeHtml(input.sessionTitle)}</strong> es mañana, ${escapeHtml(input.startsAtLabel)}, en ${escapeHtml(env.ACADEMIA_NAME)}.</p>
-  ${input.zoomUrl ? `<p><a href="${escapeAttr(input.zoomUrl)}">Entrar a la clase</a></p>` : ""}
-</div>`.trim(),
+    ...renderBoth({
+      preheader: `${input.sessionTitle} — ${input.startsAtLabel}`,
+      heading: `Hola ${input.name}, mañana tienes clase`,
+      body: [
+        `<strong style="color:#221f38">${escapeHtml(
+          input.sessionTitle
+        )}</strong><br />${escapeHtml(input.startsAtLabel)} · hora de Perú`,
+        `Te esperamos en directo en ${escapeHtml(
+          env.ACADEMIA_NAME
+        )}. Si no puedes asistir, la grabación quedará disponible en tu aula.`,
+      ],
+      cta: input.zoomUrl
+        ? { label: "Entrar a la clase", url: input.zoomUrl }
+        : { label: "Ver mi aula", url: `${env.NEXT_PUBLIC_APP_URL}/mi-aprendizaje` },
+    }),
   };
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
-}
-function escapeAttr(s: string): string {
-  return escapeHtml(s);
 }

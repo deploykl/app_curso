@@ -1,5 +1,4 @@
-import { pgEnum, pgTable, text, integer, timestamp, boolean, numeric, uuid, jsonb, unique, uniqueIndex, index, pgSequence } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { pgEnum, pgTable, text, integer, timestamp, boolean, numeric, uuid, jsonb, unique, index, pgSequence } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { courses } from "./catalog";
 
@@ -57,20 +56,14 @@ export const paymentProofs = pgTable("payment_proofs", {
   method: paymentMethod("method").notNull(),
   payerFullName: text("payer_full_name").notNull(),
   payerDni: text("payer_dni").notNull(),
-  operationNumber: text("operation_number").notNull(),
   declaredAmountCents: integer("declared_amount_cents").notNull(),
-  transferredAt: timestamp("transferred_at", { withTimezone: true }).notNull(),
   proofFileKey: text("proof_file_key").notNull(),
   status: proofStatus("status").notNull().default("pending"),
   reviewedBy: text("reviewed_by").references(() => user.id),
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   rejectionReason: text("rejection_reason"),
   submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [
-  uniqueIndex("payment_proofs_operation_uq")
-    .on(t.method, t.operationNumber)
-    .where(sql`${t.status} <> 'rejected'`),
-]);
+});
 
 export const paymentEvents = pgTable("payment_events", {
   id: uuid("id").primaryKey().defaultRandom(),

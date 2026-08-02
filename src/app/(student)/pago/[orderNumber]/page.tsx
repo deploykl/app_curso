@@ -54,7 +54,11 @@ export default async function PagoPage({ params }: { params: Promise<{ orderNumb
             ))}
           </div>
 
-          <PaymentProofForm orderId={order.id} orderNumber={order.orderNumber} />
+          <PaymentProofForm
+            orderId={order.id}
+            orderNumber={order.orderNumber}
+            totalCents={order.totalCents}
+          />
         </>
       ) : order.status === "expired" ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-destructive">

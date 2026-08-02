@@ -39,12 +39,4 @@ describe("esquema completo", () => {
     `);
     expect(rows.length).toBe(1);
   });
-
-  it("el índice de nº de operación es parcial", async () => {
-    const rows = await db.execute(sql`
-      select indexdef from pg_indexes
-      where indexname = 'payment_proofs_operation_uq'
-    `);
-    expect(String(rows[0].indexdef)).toContain("WHERE");
-  });
 });

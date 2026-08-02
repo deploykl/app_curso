@@ -77,9 +77,6 @@ test.describe("compra con pago manual", () => {
 
     await page.getByLabel("Nombre del titular").fill("Alumno Prueba");
     await page.getByLabel("DNI").fill("12345678");
-    await page.getByLabel(/operación/i).fill("OP-E2E-1");
-    await page.getByLabel(/monto/i).fill("199");
-    await page.getByLabel(/fecha y hora/i).fill("2026-08-01T10:00");
     await page.setInputFiles("#proof-file", {
       name: "comprobante.png", mimeType: "image/png",
       buffer: Buffer.from("fake-image-content"),

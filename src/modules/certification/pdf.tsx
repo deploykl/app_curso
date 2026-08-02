@@ -2,8 +2,7 @@
 // endpoint por sí mismo.
 import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import QRCode from "qrcode";
-import { r2 } from "@/lib/r2";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { putObject } from "@/lib/r2";
 import { env } from "@/env";
 import { formatLima } from "@/lib/datetime";
 
@@ -60,14 +59,7 @@ export async function generarYSubirPdf(c: CertificadoParaPdf): Promise<string> {
     const buffer = await renderToBuffer(doc);
     const key = `certificados/${c.code}/pdf/certificado.pdf`;
 
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: env.R2_BUCKET,
-        Key: key,
-        Body: buffer,
-        ContentType: "application/pdf",
-      })
-    );
+    await putObject(key, Buffer.from(buffer), "application/pdf");
 
     return key;
   } catch (err) {

@@ -85,3 +85,18 @@ export async function establecerActivoUsuario(userId: string, active: boolean): 
 
   await db.update(user).set({ active }).where(eq(user.id, userId));
 }
+
+/**
+ * Cambia el % que se queda la casa sobre las ventas de un instructor. Solo
+ * afecta a órdenes futuras: las ganancias ya calculadas (`instructor_earnings`)
+ * guardan su propio `commissionRate` como snapshot y no se recalculan.
+ */
+export async function establecerComisionInstructor(userId: string, rate: number): Promise<void> {
+  const [target] = await db.select().from(instructorProfiles)
+    .where(eq(instructorProfiles.userId, userId)).limit(1);
+  if (!target) throw new Error("Este usuario no tiene perfil de instructor.");
+
+  await db.update(instructorProfiles)
+    .set({ commissionRate: rate.toFixed(2), updatedAt: new Date() })
+    .where(eq(instructorProfiles.userId, userId));
+}

@@ -12,7 +12,15 @@ export function UsersTable({
   usuarios,
   currentUserId,
 }: {
-  usuarios: { id: string; name: string; email: string; role: string | null; active: boolean; createdAt: Date }[];
+  usuarios: {
+    id: string;
+    name: string;
+    email: string;
+    role: string | null;
+    active: boolean;
+    createdAt: Date;
+    commissionRate: number | null;
+  }[];
   currentUserId: string;
 }) {
   if (usuarios.length === 0) {
@@ -46,7 +54,12 @@ export function UsersTable({
                 {u.id === currentUserId ? (
                   <Badge variant="outline">{ROLE_LABEL[u.role ?? ""] ?? u.role} (tú)</Badge>
                 ) : (
-                  <UserRowActions userId={u.id} role={u.role ?? "student"} active={u.active} />
+                  <UserRowActions
+                    userId={u.id}
+                    role={u.role ?? "student"}
+                    active={u.active}
+                    commissionRate={u.commissionRate}
+                  />
                 )}
               </td>
             </tr>

@@ -19,8 +19,8 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     expiresIn: 60 * 60 * 24, // 24h
     sendVerificationEmail: async ({ user, url }) => {
-      const { subject, html } = verifyEmailTemplate({ name: user.name, url });
-      await sendEmail({ to: user.email, userId: user.id, template: "verify-email", subject, html });
+      const { subject, html, text } = verifyEmailTemplate({ name: user.name, url });
+      await sendEmail({ to: user.email, userId: user.id, template: "verify-email", subject, html, text });
     },
   },
   user: {

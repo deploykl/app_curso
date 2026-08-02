@@ -1,16 +1,19 @@
 import { env } from "@/env";
+import { escapeHtml, renderBoth } from "./layout";
 
 export function orderApprovedTemplate(input: { name: string; courseTitle: string }) {
   return {
     subject: `Tu acceso está listo — ${input.courseTitle}`,
-    html: `
-<div style="font-family:system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px">
-  <h1 style="font-size:20px">Hola ${escapeHtml(input.name)},</h1>
-  <p>Confirmamos tu pago. Ya tienes acceso a <strong>${escapeHtml(input.courseTitle)}</strong> en ${escapeHtml(env.ACADEMIA_NAME)}.</p>
-</div>`.trim(),
+    ...renderBoth({
+      preheader: `Confirmamos tu pago. Ya puedes entrar a ${input.courseTitle}.`,
+      heading: `Hola ${input.name}, tu acceso está listo`,
+      body: [
+        `Confirmamos tu pago y ya tienes acceso a <strong style="color:#221f38">${escapeHtml(
+          input.courseTitle
+        )}</strong> en ${escapeHtml(env.ACADEMIA_NAME)}.`,
+        "En tu aula verás las fechas de las clases en vivo, el enlace de Zoom y los materiales de cada sesión.",
+      ],
+      cta: { label: "Ir a mi aprendizaje", url: `${env.NEXT_PUBLIC_APP_URL}/mi-aprendizaje` },
+    }),
   };
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 }

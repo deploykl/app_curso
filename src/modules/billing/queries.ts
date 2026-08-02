@@ -29,6 +29,28 @@ export async function getOrderByNumber(orderNumber: string) {
   return row ?? null;
 }
 
+/**
+ * Orden pendiente y no vencida de este usuario para este curso, si la hay.
+ * Evita crear una orden nueva cada vez que vuelve a la ficha del curso.
+ */
+export async function findPendingOrderForCourse(userId: string, courseId: string) {
+  const [row] = await db
+    .select({ orderNumber: orders.orderNumber, expiresAt: orders.expiresAt })
+    .from(orders)
+    .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        eq(orders.userId, userId),
+        eq(orderItems.courseId, courseId),
+        eq(orders.status, "pending"),
+        sql`${orders.expiresAt} > now()`
+      )
+    )
+    .orderBy(sql`${orders.createdAt} desc`)
+    .limit(1);
+  return row ?? null;
+}
+
 export async function getActivePaymentDestinations() {
   return db
     .select()
@@ -49,9 +71,7 @@ export interface PendingProofRow {
   method: "yape" | "plin" | "transferencia";
   payerFullName: string;
   payerDni: string;
-  operationNumber: string;
   declaredAmountCents: number;
-  transferredAt: Date;
   proofFileKey: string;
   submittedAt: Date;
   totalCents: number;
@@ -69,9 +89,7 @@ export async function listPendingProofs(): Promise<PendingProofRow[]> {
       method: paymentProofs.method,
       payerFullName: paymentProofs.payerFullName,
       payerDni: paymentProofs.payerDni,
-      operationNumber: paymentProofs.operationNumber,
       declaredAmountCents: paymentProofs.declaredAmountCents,
-      transferredAt: paymentProofs.transferredAt,
       proofFileKey: paymentProofs.proofFileKey,
       submittedAt: paymentProofs.submittedAt,
       totalCents: orders.totalCents,

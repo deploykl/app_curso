@@ -61,9 +61,7 @@ export function AdminProofReview({ proof }: { proof: Omit<PendingProofRow, "proo
         <div><dt className="text-muted-foreground">Método</dt><dd>{proof.method}</dd></div>
         <div><dt className="text-muted-foreground">Titular declarado</dt><dd>{proof.payerFullName}</dd></div>
         <div><dt className="text-muted-foreground">DNI</dt><dd>{proof.payerDni}</dd></div>
-        <div><dt className="text-muted-foreground">Nº de operación</dt><dd>{proof.operationNumber}</dd></div>
-        <div><dt className="text-muted-foreground">Monto declarado</dt><dd>{formatPEN(proof.declaredAmountCents)}</dd></div>
-        <div><dt className="text-muted-foreground">Fecha declarada</dt><dd>{formatLima(new Date(proof.transferredAt))}</dd></div>
+        <div><dt className="text-muted-foreground">Enviado</dt><dd>{formatLima(new Date(proof.submittedAt))}</dd></div>
       </dl>
 
       {proofUrl ? (

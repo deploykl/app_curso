@@ -5,12 +5,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { createClassSession, updateClassSession } from "@/modules/catalog/session-actions";
 
 interface SessionFormValues {
   title: string;
-  descriptionMd?: string | null;
   startsAtLocal: string;
   durationMinutes: number;
   zoomUrl?: string | null;
@@ -39,7 +37,6 @@ export function SessionForm({
 
     const raw = {
       title: String(form.get("title") ?? ""),
-      descriptionMd: String(form.get("descriptionMd") ?? "") || undefined,
       startsAtLocal: String(form.get("startsAtLocal") ?? ""),
       durationMinutes: Number(form.get("durationMinutes") ?? 60),
       zoomUrl: String(form.get("zoomUrl") ?? "") || "",
@@ -71,11 +68,6 @@ export function SessionForm({
       <div className="flex flex-col gap-2">
         <Label htmlFor="title">Título</Label>
         <Input id="title" name="title" required minLength={3} defaultValue={initialValues?.title} />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="descriptionMd">Descripción</Label>
-        <Textarea id="descriptionMd" name="descriptionMd" rows={3} defaultValue={initialValues?.descriptionMd ?? ""} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

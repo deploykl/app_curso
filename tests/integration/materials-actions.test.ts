@@ -15,6 +15,9 @@ vi.mock("@/modules/auth/session", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/r2", () => ({
+  usingR2: false,
+  putObject: vi.fn(async () => {}),
+  getObject: vi.fn(async () => Buffer.from("")),
   presignGet: vi.fn(async (key: string) => `https://r2.test/${key}?sig=x`),
   presignPut: vi.fn(async () => "https://r2.test/put"),
   deleteObject: vi.fn(async () => {}),
