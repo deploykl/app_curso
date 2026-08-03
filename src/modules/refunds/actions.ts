@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { orders, orderItems, enrollments, instructorEarnings, user } from "@/db/schema";
 import { assertRole } from "@/modules/auth/session";
-import { revocarCertificadoTx } from "@/modules/certification/issuance";
+import { revocarCertificadoTx, bloquearCertificadoPorIdTx } from "@/modules/certification/issuance";
 import { deleteObject } from "@/lib/r2";
 import { sendEmail } from "@/modules/notifications/mailer";
 import { refundProcessedTemplate } from "@/modules/notifications/templates/refund-processed";
@@ -46,17 +46,26 @@ export async function revocarAcceso(orderId: string, motivo: string): Promise<vo
 
     await tx.update(orders).set({ status: "refunded" }).where(eq(orders.id, orderId));
 
-    const [enr] = await tx.select({ id: enrollments.id })
-      .from(enrollments).where(eq(enrollments.orderId, orderId)).limit(1);
-    if (enr) {
-      await tx.update(enrollments).set({ status: "refunded" }).where(eq(enrollments.id, enr.id));
-    }
-
-    const items = await tx.select({ id: orderItems.id }).from(orderItems).where(eq(orderItems.orderId, orderId));
+    const items = await tx.select({ id: orderItems.id, itemType: orderItems.itemType, certificateId: orderItems.certificateId })
+      .from(orderItems).where(eq(orderItems.orderId, orderId));
     for (const item of items) {
       await tx.update(instructorEarnings)
         .set({ status: "reversed" })
         .where(eq(instructorEarnings.orderItemId, item.id));
+    }
+
+    // Una orden de certificado nunca crea una fila en `enrollments` (no
+    // desinscribe del curso): solo vuelve a bloquear el certificado.
+    const certificateItem = items.find((i) => i.itemType === "certificado" && i.certificateId);
+    if (certificateItem?.certificateId) {
+      const resultado = await bloquearCertificadoPorIdTx(tx, certificateItem.certificateId);
+      return { alreadyRefunded: false, pdfKeyAEliminar: resultado?.pdfKey ?? null };
+    }
+
+    const [enr] = await tx.select({ id: enrollments.id })
+      .from(enrollments).where(eq(enrollments.orderId, orderId)).limit(1);
+    if (enr) {
+      await tx.update(enrollments).set({ status: "refunded" }).where(eq(enrollments.id, enr.id));
     }
 
     if (!enr) return { alreadyRefunded: false, pdfKeyAEliminar: null as string | null };

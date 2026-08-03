@@ -1,6 +1,7 @@
 import { pgEnum, pgTable, text, integer, timestamp, boolean, numeric, uuid, jsonb, unique, index, pgSequence } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { courses } from "./catalog";
+import { certificates } from "./certification";
 
 export const orderStatus = pgEnum("order_status", [
   "pending", "paid", "failed", "expired", "refunded",
@@ -9,6 +10,7 @@ export const paymentProvider = pgEnum("payment_provider", ["manual", "culqi"]);
 export const paymentMethod = pgEnum("payment_method", ["yape", "plin", "transferencia"]);
 export const proofStatus = pgEnum("proof_status", ["pending", "approved", "rejected"]);
 export const couponType = pgEnum("coupon_type", ["percent", "fixed"]);
+export const orderItemType = pgEnum("order_item_type", ["curso", "certificado"]);
 
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -32,6 +34,9 @@ export const orderItems = pgTable("order_items", {
   courseId: uuid("course_id").notNull().references(() => courses.id),
   instructorId: text("instructor_id").notNull().references(() => user.id),
   titleSnapshot: text("title_snapshot").notNull(),
+  itemType: orderItemType("item_type").notNull().default("curso"),
+  // Solo cuando itemType = "certificado": qué certificado se está desbloqueando.
+  certificateId: uuid("certificate_id").references(() => certificates.id),
   unitPriceCents: integer("unit_price_cents").notNull(),
   commissionRate: numeric("commission_rate", { precision: 5, scale: 2 }).notNull(),
   commissionCents: integer("commission_cents").notNull(),

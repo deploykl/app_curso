@@ -1,6 +1,7 @@
 "use client";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { EyeOff, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { publicarExamen, despublicarExamen } from "@/modules/assessment/actions";
@@ -38,8 +39,9 @@ export function PublishExamButton({
       variant={isPublished ? "outline" : "default"}
       disabled={isPending}
       onClick={onClick}
-      className="self-start"
+      className="w-fit gap-1.5"
     >
+      {isPublished ? <EyeOff className="size-4" /> : <Send className="size-4" />}
       {isPending ? "Guardando..." : isPublished ? "Despublicar examen" : "Publicar examen"}
     </Button>
   );

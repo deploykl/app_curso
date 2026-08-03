@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Clock } from "lucide-react";
 
 function formatear(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -34,9 +35,14 @@ export function CuentaRegresiva({ expiresAtISO }: { expiresAtISO: string }) {
     <span
       role="timer"
       aria-live="off"
-      className={urgente ? "font-mono text-sm text-destructive" : "font-mono text-sm text-muted-foreground"}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-sm font-medium ${
+        urgente
+          ? "bg-destructive/15 text-destructive"
+          : "bg-muted text-muted-foreground"
+      }`}
     >
-      ⏱ {formatear(restante)}
+      <Clock className="size-3.5" />
+      {formatear(restante)}
     </span>
   );
 }

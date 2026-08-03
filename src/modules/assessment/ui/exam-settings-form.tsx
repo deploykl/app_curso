@@ -77,37 +77,40 @@ export function ExamSettingsForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-md border border-border p-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
       <div className="flex flex-col gap-2">
         <Label htmlFor="title">Título del examen</Label>
         <Input id="title" name="title" required minLength={3} defaultValue={v.title} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="passingScore">Nota de aprobación (%)</Label>
-          <Input id="passingScore" name="passingScore" type="number" min={1} max={100} required
-                 defaultValue={v.passingScore} />
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 items-end gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="passingScore">Nota de aprobación (%)</Label>
+            <Input id="passingScore" name="passingScore" type="number" min={1} max={100} required
+                   defaultValue={v.passingScore} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="maxAttempts">Intentos permitidos</Label>
+            <Input id="maxAttempts" name="maxAttempts" type="number" min={1} max={10} required
+                   defaultValue={v.maxAttempts} />
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="maxAttempts">Intentos permitidos</Label>
-          <Input id="maxAttempts" name="maxAttempts" type="number" min={1} max={10} required
-                 defaultValue={v.maxAttempts} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="lockoutHours">Bloqueo tras agotarlos (horas)</Label>
-          <Input id="lockoutHours" name="lockoutHours" type="number" min={0} max={168} required
-                 defaultValue={v.lockoutHours} />
-        </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="timeLimitMinutes">Límite de tiempo (min)</Label>
-          <Input id="timeLimitMinutes" name="timeLimitMinutes" type="number" min={1} max={480}
-                 defaultValue={v.timeLimitMinutes ?? ""} />
-          <p className="text-xs text-muted-foreground">Déjalo vacío para no limitar el tiempo.</p>
+        <div className="grid grid-cols-2 items-end gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="lockoutHours">Bloqueo tras agotarlos (horas)</Label>
+            <Input id="lockoutHours" name="lockoutHours" type="number" min={0} max={168} required
+                   defaultValue={v.lockoutHours} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="timeLimitMinutes">Límite de tiempo (min)</Label>
+            <Input id="timeLimitMinutes" name="timeLimitMinutes" type="number" min={1} max={480}
+                   defaultValue={v.timeLimitMinutes ?? ""} />
+          </div>
         </div>
+        <p className="-mt-2 text-xs text-muted-foreground">Deja el límite de tiempo vacío para no limitarlo.</p>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="questionsPerAttempt">Preguntas por intento</Label>
           <Input id="questionsPerAttempt" name="questionsPerAttempt" type="number" min={1} max={200}
@@ -116,14 +119,26 @@ export function ExamSettingsForm({
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="shuffleQuestions" defaultChecked={v.shuffleQuestions} />
-        Barajar el orden de las preguntas
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="shuffleOptions" defaultChecked={v.shuffleOptions} />
-        Barajar el orden de las opciones
-      </label>
+      <div className="flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3">
+        <label className="flex items-center gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            name="shuffleQuestions"
+            defaultChecked={v.shuffleQuestions}
+            className="size-4 accent-primary"
+          />
+          Barajar el orden de las preguntas
+        </label>
+        <label className="flex items-center gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            name="shuffleOptions"
+            defaultChecked={v.shuffleOptions}
+            className="size-4 accent-primary"
+          />
+          Barajar el orden de las opciones
+        </label>
+      </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

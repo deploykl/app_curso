@@ -70,7 +70,8 @@ async function sendForWindow(kind: "24h" | "1h", window: ReminderWindow): Promis
       const { subject, html, text } = template({
         name: s.name,
         sessionTitle: session.title,
-        startsAtLabel: formatLima(session.startsAt),
+        // El filtro gte/lte de arriba ya garantiza que startsAt no es null: solo sesiones "en vivo" quedan scheduled con fecha.
+        startsAtLabel: formatLima(session.startsAt!),
         zoomUrl: session.zoomUrl,
       });
       const result = await sendEmail({ to: s.email, userId: s.userId, template: `session-reminder-${kind}`, subject, html, text });

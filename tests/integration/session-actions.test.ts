@@ -50,7 +50,7 @@ describe("createClassSession", () => {
       durationMinutes: 60, isFreePreview: false,
     });
     const [s] = await db.select().from(classSessions);
-    expect(s.startsAt.toISOString()).toBe("2026-08-15T15:00:00.000Z");
+    expect(s.startsAt?.toISOString()).toBe("2026-08-15T15:00:00.000Z");
   });
 
   it("rechaza un enlace que no sea de videollamada", async () => {

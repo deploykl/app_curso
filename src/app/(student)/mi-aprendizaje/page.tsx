@@ -164,7 +164,9 @@ export default async function MiAprendizajePage() {
                       </>
                     )
                   ) : (
-                    <span className="text-muted-foreground">Sin sesiones programadas.</span>
+                    <span className="text-muted-foreground">
+                      {c.deliveryMode === "grabado" ? "Curso grabado: disponible cuando quieras." : "Sin sesiones programadas."}
+                    </span>
                   )}
                 </div>
               </div>

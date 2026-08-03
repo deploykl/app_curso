@@ -49,7 +49,7 @@ async function main() {
       descriptionMd: "Curso práctico con clases en vivo por Zoom y materiales descargables.",
       level: "basico",
       priceCents: 19900,
-      estimatedHours: "8.00",
+      estimatedHours: "6.00",
       status: "published",
       publishedAt: new Date(),
     }).returning();

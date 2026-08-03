@@ -78,6 +78,14 @@ export function validateProofUpload(input: ProofUploadInput):
   return { ok: true };
 }
 
+export function destinationQrKey(destinationId: string, fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  const rawExt = dot > 0 ? fileName.slice(dot + 1) : "";
+  const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8);
+  const suffix = ext ? `.${ext}` : "";
+  return `payment-destinations/${destinationId}/${Date.now()}${suffix}`;
+}
+
 export function proofKey(orderId: string, fileName: string): string {
   const dot = fileName.lastIndexOf(".");
   const rawExt = dot > 0 ? fileName.slice(dot + 1) : "";

@@ -50,6 +50,48 @@
       "when": 1785707705933,
       "tag": "0006_lovely_marvel_boy",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1785716190062,
+      "tag": "0007_warm_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785721847361,
+      "tag": "0008_cooing_the_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1785722161913,
+      "tag": "0009_backfill_certificate_paid_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785724183998,
+      "tag": "0010_regenerar_pdfs_certificados",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1785728961536,
+      "tag": "0011_drop_instructor_bank_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1785728980179,
+      "tag": "0012_add_instructor_payout_method",
+      "breakpoints": true
     }
   ]
 }

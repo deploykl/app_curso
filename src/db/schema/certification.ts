@@ -16,4 +16,6 @@ export const certificates = pgTable("certificates", {
   pdfKey: text("pdf_key"),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   revokeReason: text("revoke_reason"),
+  // null = emitido pero bloqueado hasta que se pague el certificado (ver courses.certificatePriceCents).
+  paidAt: timestamp("paid_at", { withTimezone: true }),
 });

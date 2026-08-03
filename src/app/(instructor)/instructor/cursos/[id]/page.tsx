@@ -4,13 +4,15 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { ArrowLeft, ClipboardList } from "lucide-react";
 import { db } from "@/db";
 import { categories, classSessions, sessionMaterials } from "@/db/schema";
+import { env } from "@/env";
 import { requireUser } from "@/modules/auth/session";
 import { canManageCourse, type Role } from "@/modules/auth/guards";
 import { getCourseById } from "@/modules/catalog/queries";
 import { CourseForm } from "@/modules/catalog/ui/course-form";
+import { CourseVideoField } from "@/modules/catalog/ui/course-video-field";
 import { PublishButton } from "@/modules/catalog/ui/publish-button";
-import { SessionForm } from "@/modules/catalog/ui/session-form";
 import { SessionList } from "@/modules/catalog/ui/session-list";
+import { ShareCourseLink } from "@/modules/catalog/ui/share-course-link";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Borrador",
@@ -71,6 +73,9 @@ export default async function EditarCursoPage({ params }: { params: Promise<{ id
           >
             {STATUS_LABEL[course.status]}
           </span>
+          <span className="whitespace-nowrap rounded-full bg-secondary px-2.5 py-0.5 text-xs font-bold text-secondary-foreground">
+            {course.deliveryMode === "en_vivo" ? "En vivo" : "Grabado"}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -84,43 +89,48 @@ export default async function EditarCursoPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <section className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-lg font-semibold">Detalles del curso</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Título, precio y todo lo que ven tus alumnos.</p>
-        <div className="mt-4">
-          <CourseForm
-            categories={cats}
-            courseId={course.id}
-            initialValues={{
-              title: course.title,
-              subtitle: course.subtitle,
-              descriptionMd: course.descriptionMd,
-              categoryId: course.categoryId,
-              level: course.level,
-              priceSoles: (course.priceCents / 100).toFixed(2),
-              estimatedHours: course.estimatedHours,
-            }}
-          />
-        </div>
-      </section>
+      {course.status === "published" && (
+        <ShareCourseLink url={`${env.NEXT_PUBLIC_APP_URL}/cursos/${course.slug}`} />
+      )}
 
-      <section id="sesiones" className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-lg font-semibold">Sesiones de clase</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {sessions.length === 0
-            ? "Necesitas al menos una sesión para publicar el curso."
-            : `${sessions.length} sesión${sessions.length === 1 ? "" : "es"} programada${sessions.length === 1 ? "" : "s"}.`}
-        </p>
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.55fr_1fr]">
+        <section className="rounded-xl border border-border bg-card p-5">
+          <h2 className="text-lg font-semibold">Detalles del curso</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Título, precio y todo lo que ven tus alumnos.</p>
 
-        <div className="mt-4">
-          <SessionList courseId={course.id} sessions={sessions} />
-        </div>
+          {course.deliveryMode === "grabado" && (
+            <div className="mt-4">
+              <CourseVideoField
+                courseId={course.id}
+                hasVideo={Boolean(sessions[0]?.videoFileKey)}
+                durationMinutes={sessions[0]?.durationMinutes ?? 60}
+              />
+            </div>
+          )}
 
-        <div className="mt-5 border-t border-border pt-5">
-          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Agregar sesión</h3>
-          <SessionForm courseId={course.id} />
-        </div>
-      </section>
+          <div className="mt-4">
+            <CourseForm
+              categories={cats}
+              courseId={course.id}
+              initialValues={{
+                title: course.title,
+                subtitle: course.subtitle,
+                descriptionMd: course.descriptionMd,
+                categoryId: course.categoryId,
+                level: course.level,
+                priceSoles: (course.priceCents / 100).toFixed(2),
+                certificatePriceSoles: course.certificatePriceCents
+                  ? (course.certificatePriceCents / 100).toFixed(2)
+                  : "",
+              }}
+            />
+          </div>
+        </section>
+
+        <section id="sesiones" className="rounded-xl border border-border bg-card p-4 lg:sticky lg:top-20">
+          <SessionList courseId={course.id} deliveryMode={course.deliveryMode} sessions={sessions} />
+        </section>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { user, courses, enrollments, orders, orderItems, coupons, instructorProfiles } from "@/db/schema";
+import { user, courses, enrollments, orders, orderItems, paymentProofs, coupons, instructorProfiles } from "@/db/schema";
 
 let studentId: string;
 let profId: string;
@@ -14,9 +14,9 @@ vi.mock("@/modules/auth/session", () => ({
 const { crearOrden } = await import("@/modules/billing/actions");
 
 beforeEach(async () => {
+  await db.delete(enrollments);
   await db.delete(orderItems);
   await db.delete(orders);
-  await db.delete(enrollments);
   await db.delete(coupons);
   await db.delete(courses);
   await db.delete(instructorProfiles);
@@ -84,4 +84,35 @@ describe("crearOrden", () => {
     }).returning();
     await expect(crearOrden(draft.id)).rejects.toThrow(/no está disponible/i);
   });
+
+  it("un curso gratis inscribe de inmediato sin comprobante", async () => {
+    const [gratis] = await db.insert(courses).values({
+      instructorId: profId, slug: "curso-gratis", title: "Curso Gratis",
+      priceCents: 0, status: "published",
+    }).returning();
+
+    const { orderNumber, freeEnrollment } = await crearOrden(gratis.id);
+    expect(freeEnrollment).toBe(true);
+
+    const [o] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber));
+    expect(o.status).toBe("paid");
+    expect(o.totalCents).toBe(0);
+
+    const [e] = await db.select().from(enrollments)
+      .where(eq(enrollments.courseId, gratis.id));
+    expect(e.status).toBe("active");
+
+    const proofs = await db.select().from(paymentProofs).where(eq(paymentProofs.orderId, o.id));
+    expect(proofs).toHaveLength(0);
+  });
+});
+
+afterAll(async () => {
+  await db.delete(enrollments);
+  await db.delete(orderItems);
+  await db.delete(orders);
+  await db.delete(coupons);
+  await db.delete(courses);
+  await db.delete(instructorProfiles);
+  await db.delete(user);
 });

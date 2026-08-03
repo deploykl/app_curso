@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { SearchIcon, SparklesIcon } from "lucide-react";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { listPublishedCourses } from "@/modules/catalog/queries";
-import { formatPEN } from "@/lib/money";
-import { Badge } from "@/components/ui/badge";
+import { CourseCard } from "@/components/landing/course-card";
+import { Reveal } from "@/components/motion/reveal";
 
 const LEVELS = [
   { value: "basico", label: "Básico" },
@@ -19,6 +20,29 @@ function buildQuery(params: Record<string, string | undefined>, overrides: Recor
   }
   const s = qs.toString();
   return s ? `/cursos?${s}` : "/cursos";
+}
+
+function FilterPill({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+        active
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </Link>
+  );
 }
 
 export default async function CursosPage({
@@ -37,76 +61,71 @@ export default async function CursosPage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="text-3xl font-semibold">Cursos</h1>
+      <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.14em] text-primary uppercase">
+        <SparklesIcon className="size-3.5" />
+        Catálogo
+      </p>
+      <h1 className="mt-3 text-3xl font-bold tracking-[-0.025em] sm:text-4xl">Cursos</h1>
+      <p className="mt-2 text-muted-foreground">
+        {cursos.length} curso{cursos.length === 1 ? "" : "s"} disponible{cursos.length === 1 ? "" : "s"}
+        {params.categoria || params.nivel || params.q ? " con estos filtros" : ""}.
+      </p>
 
-      <form className="mt-6 flex flex-wrap items-center gap-3" action="/cursos">
+      <form className="relative mt-8 max-w-md" action="/cursos">
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
           name="q"
           defaultValue={params.q}
-          placeholder="Buscar cursos..."
-          className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+          placeholder="Buscar por título..."
+          className="h-11 w-full rounded-full border border-input bg-card pr-4 pl-10 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         />
         {params.categoria && <input type="hidden" name="categoria" value={params.categoria} />}
         {params.nivel && <input type="hidden" name="nivel" value={params.nivel} />}
-        <button type="submit" className="h-9 rounded-md bg-primary px-4 text-sm text-primary-foreground">
-          Buscar
-        </button>
       </form>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-sm">
-        <Link href={buildQuery(params, { categoria: undefined })} className={!params.categoria ? "font-medium text-primary" : "text-muted-foreground"}>
-          Todas las categorías
-        </Link>
-        {cats.map((c) => (
-          <Link
-            key={c.id}
-            href={buildQuery(params, { categoria: c.slug })}
-            className={params.categoria === c.slug ? "font-medium text-primary" : "text-muted-foreground"}
-          >
-            {c.name}
-          </Link>
-        ))}
-      </div>
+      <div className="mt-5 flex flex-col gap-2.5">
+        <div className="flex flex-wrap gap-2">
+          <FilterPill href={buildQuery(params, { categoria: undefined })} active={!params.categoria}>
+            Todas las categorías
+          </FilterPill>
+          {cats.map((c) => (
+            <FilterPill
+              key={c.id}
+              href={buildQuery(params, { categoria: c.slug })}
+              active={params.categoria === c.slug}
+            >
+              {c.name}
+            </FilterPill>
+          ))}
+        </div>
 
-      <div className="mt-2 flex flex-wrap gap-2 text-sm">
-        <Link href={buildQuery(params, { nivel: undefined })} className={!params.nivel ? "font-medium text-primary" : "text-muted-foreground"}>
-          Todos los niveles
-        </Link>
-        {LEVELS.map((l) => (
-          <Link
-            key={l.value}
-            href={buildQuery(params, { nivel: l.value })}
-            className={params.nivel === l.value ? "font-medium text-primary" : "text-muted-foreground"}
-          >
-            {l.label}
-          </Link>
-        ))}
+        <div className="flex flex-wrap gap-2">
+          <FilterPill href={buildQuery(params, { nivel: undefined })} active={!params.nivel}>
+            Todos los niveles
+          </FilterPill>
+          {LEVELS.map((l) => (
+            <FilterPill key={l.value} href={buildQuery(params, { nivel: l.value })} active={params.nivel === l.value}>
+              {l.label}
+            </FilterPill>
+          ))}
+        </div>
       </div>
 
       {cursos.length === 0 ? (
-        <p className="mt-12 text-muted-foreground">No encontramos cursos con esos filtros.</p>
-      ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {cursos.map((c) => (
-            <Link
-              key={c.id}
-              href={`/cursos/${c.slug}`}
-              className="flex flex-col gap-2 rounded-lg border border-border p-5 hover:border-primary"
-            >
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary">{c.categoryName ?? "General"}</Badge>
-                <Badge variant="outline">{c.level}</Badge>
-              </div>
-              <h2 className="text-lg font-medium">{c.title}</h2>
-              {c.subtitle && <p className="text-sm text-muted-foreground">{c.subtitle}</p>}
-              <div className="mt-auto flex items-center justify-between pt-3 text-sm">
-                <span className="text-muted-foreground">{c.instructorName} · {c.sessionCount} sesiones</span>
-                <span className="font-semibold">{formatPEN(c.priceCents)}</span>
-              </div>
-            </Link>
-          ))}
+        <div className="mt-16 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-16 text-center">
+          <SearchIcon className="size-7 text-muted-foreground/60" />
+          <p className="font-medium">No encontramos cursos con esos filtros.</p>
+          <Link href="/cursos" className="text-sm text-primary hover:underline">
+            Quitar todos los filtros
+          </Link>
         </div>
+      ) : (
+        <Reveal stagger className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {cursos.map((c) => (
+            <CourseCard key={c.id} course={c} />
+          ))}
+        </Reveal>
       )}
     </div>
   );

@@ -34,7 +34,6 @@ test.describe("panel de instructor", () => {
     const titulo = `Curso E2E ${Date.now()}`;
     await page.getByLabel("Título", { exact: true }).fill(titulo);
     await page.getByLabel(/precio/i).fill("149");
-    await page.getByLabel(/horas/i).fill("6");
     await page.getByRole("button", { name: /guardar|crear/i }).click();
 
     await expect(page.getByText(titulo)).toBeVisible();
@@ -43,12 +42,11 @@ test.describe("panel de instructor", () => {
     await page.getByRole("button", { name: /publicar/i }).click();
     await expect(page.getByText(/al menos una sesión/i)).toBeVisible();
 
-    // Añadir una sesión (ahora se agrega directo en la página del curso)
-    await page.getByLabel("Título", { exact: true }).nth(1).fill("Clase E2E");
+    // Añadir una sesión (el título se autogenera: "Clase 1"; se agrega directo en la página del curso)
     await page.getByLabel(/fecha y hora/i).fill("2026-12-01T10:00");
     await page.getByLabel(/duración \(min\)/i).fill("90");
     await page.getByRole("button", { name: /agregar sesión/i }).click();
-    await expect(page.getByText("Clase E2E")).toBeVisible();
+    await expect(page.getByText("Clase 1")).toBeVisible();
 
     // Ahora sí publica
     await page.getByRole("button", { name: /publicar/i }).click();

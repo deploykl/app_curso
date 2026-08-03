@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { certificates, enrollments } from "@/db/schema";
+import { certificates, enrollments, courses } from "@/db/schema";
 
 export type CertificadoPublico =
   | {
@@ -13,7 +13,8 @@ export type CertificadoPublico =
       finalScore: number;
       issuedAt: Date;
     }
-  | { estado: "revocado"; revokedAt: Date };
+  | { estado: "revocado"; revokedAt: Date }
+  | { estado: "pendiente_pago" };
 
 /**
  * Verificación pública por código. No selecciona email ni ninguna columna
@@ -30,6 +31,7 @@ export async function getCertificadoPublico(code: string): Promise<CertificadoPu
       finalScore: certificates.finalScore,
       issuedAt: certificates.issuedAt,
       revokedAt: certificates.revokedAt,
+      paidAt: certificates.paidAt,
     })
     .from(certificates)
     .where(eq(certificates.code, code))
@@ -38,6 +40,12 @@ export async function getCertificadoPublico(code: string): Promise<CertificadoPu
 
   if (row.revokedAt) {
     return { estado: "revocado", revokedAt: row.revokedAt };
+  }
+
+  // Certificado emitido pero bloqueado hasta que se pague (curso con
+  // certificatePriceCents > 0). No se filtra info del alumno en este estado.
+  if (!row.paidAt) {
+    return { estado: "pendiente_pago" };
   }
 
   return {
@@ -78,8 +86,11 @@ export async function listarCertificados(): Promise<CertificadoAdminRow[]> {
 
 export interface MiCertificado {
   code: string;
+  courseId: string;
   courseTitle: string;
   issuedAt: Date;
+  paidAt: Date | null;
+  certificatePriceCents: number | null;
 }
 
 /** Certificados del alumno, para /certificados. */
@@ -87,11 +98,15 @@ export async function getMisCertificados(userId: string): Promise<MiCertificado[
   const rows = await db
     .select({
       code: certificates.code,
+      courseId: enrollments.courseId,
       courseTitle: certificates.courseTitle,
       issuedAt: certificates.issuedAt,
+      paidAt: certificates.paidAt,
+      certificatePriceCents: courses.certificatePriceCents,
     })
     .from(certificates)
     .innerJoin(enrollments, eq(enrollments.id, certificates.enrollmentId))
+    .innerJoin(courses, eq(courses.id, enrollments.courseId))
     .where(and(eq(enrollments.userId, userId), isNull(certificates.revokedAt)))
     .orderBy(desc(certificates.issuedAt));
   return rows;

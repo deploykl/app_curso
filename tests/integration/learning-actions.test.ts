@@ -72,4 +72,15 @@ describe("marcarProgreso", () => {
     currentUserId = alumnoId;
     await expect(acts.marcarProgreso(crypto.randomUUID())).rejects.toThrow(/no encontrada/i);
   });
+
+  it("rechaza marcar asistencia antes de que empiece la sesión", async () => {
+    const [futura] = await db.insert(classSessions).values({
+      courseId: cursoId, title: "Clase futura",
+      startsAt: new Date(Date.now() + 60 * 60_000), durationMinutes: 60,
+    }).returning();
+
+    currentUserId = alumnoId;
+    await expect(acts.marcarProgreso(futura.id)).rejects.toThrow(/todavía no empieza/i);
+    expect(await db.select().from(sessionAttendance)).toHaveLength(0);
+  });
 });

@@ -23,6 +23,11 @@ export async function GET(
   if (!cert || cert.revokedAt) {
     return new Response("No encontrado.", { status: 404, headers: NOINDEX_HEADERS });
   }
+  // Defensa en profundidad: la UI (/certificados) ya oculta este link mientras
+  // el certificado está bloqueado (curso con certificado pago sin pagar).
+  if (!cert.paidAt) {
+    return new Response("Este certificado aún no fue pagado.", { status: 403, headers: NOINDEX_HEADERS });
+  }
 
   let pdfKey = cert.pdfKey;
   if (!pdfKey) {

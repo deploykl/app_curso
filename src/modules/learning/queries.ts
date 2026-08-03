@@ -5,12 +5,18 @@ import { assertEnrolled } from "@/modules/auth/guards";
 import { sessionState, type SessionState } from "@/lib/datetime";
 import { pickNextSession } from "./service";
 
+/** Sesiones "grabado" no tienen fecha: se consideran siempre disponibles, como si ya hubieran pasado. */
+function effectiveState(startsAt: Date | null, durationMinutes: number): SessionState {
+  return startsAt ? sessionState(startsAt, durationMinutes) : "past";
+}
+
 export interface MyCourseCard {
   courseId: string;
   slug: string;
   title: string;
   subtitle: string | null;
   categoryName: string | null;
+  deliveryMode: "en_vivo" | "grabado";
   totalSessions: number;
   attendedSessions: number;
   nextSession: { id: string; title: string; startsAt: Date; state: SessionState } | null;
@@ -25,6 +31,7 @@ export async function listMyCourses(userId: string): Promise<MyCourseCard[]> {
       title: courses.title,
       subtitle: courses.subtitle,
       categoryName: categories.name,
+      deliveryMode: courses.deliveryMode,
     })
     .from(enrollments)
     .innerJoin(courses, eq(courses.id, enrollments.courseId))
@@ -48,13 +55,16 @@ export async function listMyCourses(userId: string): Promise<MyCourseCard[]> {
       .from(sessionAttendance)
       .where(eq(sessionAttendance.enrollmentId, e.enrollmentId));
 
-    const next = pickNextSession(sessions);
+    // pickNextSession solo tiene sentido para cursos en vivo: los grabados no tienen fecha.
+    const withDate = sessions.filter((s): s is typeof s & { startsAt: Date } => s.startsAt !== null);
+    const next = pickNextSession(withDate);
     result.push({
       courseId: e.courseId,
       slug: e.slug,
       title: e.title,
       subtitle: e.subtitle,
       categoryName: e.categoryName,
+      deliveryMode: e.deliveryMode,
       totalSessions: sessions.length,
       attendedSessions: attendedRows.length,
       nextSession: next
@@ -69,7 +79,7 @@ export interface AgendaSession {
   id: string;
   orderIndex: number;
   title: string;
-  startsAt: Date;
+  startsAt: Date | null;
   durationMinutes: number;
   state: SessionState;
   hasRecording: boolean;
@@ -81,13 +91,14 @@ export interface CourseAgenda {
   courseId: string;
   slug: string;
   title: string;
+  deliveryMode: "en_vivo" | "grabado";
   tieneExamenPublicado: boolean;
   sessions: AgendaSession[];
 }
 
 export async function getCourseAgenda(userId: string, slug: string): Promise<CourseAgenda | null> {
   const [course] = await db
-    .select({ id: courses.id, slug: courses.slug, title: courses.title })
+    .select({ id: courses.id, slug: courses.slug, title: courses.title, deliveryMode: courses.deliveryMode })
     .from(courses).where(eq(courses.slug, slug)).limit(1);
   if (!course) return null;
 
@@ -103,7 +114,7 @@ export async function getCourseAgenda(userId: string, slug: string): Promise<Cou
     .select({
       id: classSessions.id, orderIndex: classSessions.orderIndex, title: classSessions.title,
       startsAt: classSessions.startsAt, durationMinutes: classSessions.durationMinutes,
-      hasRecording: sql<boolean>`${classSessions.recordingUrl} is not null`,
+      hasRecording: sql<boolean>`${classSessions.recordingUrl} is not null or ${classSessions.videoFileKey} is not null`,
     })
     .from(classSessions)
     .where(eq(classSessions.courseId, course.id))
@@ -135,11 +146,12 @@ export async function getCourseAgenda(userId: string, slug: string): Promise<Cou
     courseId: course.id,
     slug: course.slug,
     title: course.title,
+    deliveryMode: course.deliveryMode,
     tieneExamenPublicado: examenPublicado.length > 0,
     sessions: rawSessions.map((s) => ({
       ...s,
       materialCount: materialCounts.get(s.id) ?? 0,
-      state: sessionState(s.startsAt, s.durationMinutes),
+      state: effectiveState(s.startsAt, s.durationMinutes),
       attended: attendedIds.has(s.id),
     })),
   };
@@ -150,15 +162,18 @@ export interface SessionDetail {
   courseId: string;
   courseTitle: string;
   courseSlug: string;
+  deliveryMode: "en_vivo" | "grabado";
   title: string;
   descriptionMd: string | null;
-  startsAt: Date;
+  startsAt: Date | null;
   durationMinutes: number;
   state: SessionState;
   zoomUrl: string | null;
   recordingUrl: string | null;
+  videoFileKey: string | null;
   attended: boolean;
   materials: { id: string; title: string }[];
+  tieneExamenPublicado: boolean;
 }
 
 export async function getSessionDetail(userId: string, sessionId: string): Promise<SessionDetail | null> {
@@ -168,7 +183,8 @@ export async function getSessionDetail(userId: string, sessionId: string): Promi
       descriptionMd: classSessions.descriptionMd, startsAt: classSessions.startsAt,
       durationMinutes: classSessions.durationMinutes,
       zoomUrl: classSessions.zoomUrl, recordingUrl: classSessions.recordingUrl,
-      courseTitle: courses.title, courseSlug: courses.slug,
+      videoFileKey: classSessions.videoFileKey,
+      courseTitle: courses.title, courseSlug: courses.slug, deliveryMode: courses.deliveryMode,
     })
     .from(classSessions)
     .innerJoin(courses, eq(courses.id, classSessions.courseId))
@@ -195,5 +211,17 @@ export async function getSessionDetail(userId: string, sessionId: string): Promi
     .from(sessionMaterials)
     .where(eq(sessionMaterials.classSessionId, sessionId));
 
-  return { ...row, state: sessionState(row.startsAt, row.durationMinutes), attended, materials };
+  const examenPublicado = await db
+    .select({ id: exams.id })
+    .from(exams)
+    .where(and(eq(exams.courseId, row.courseId), eq(exams.isPublished, true)))
+    .limit(1);
+
+  return {
+    ...row,
+    state: effectiveState(row.startsAt, row.durationMinutes),
+    attended,
+    materials,
+    tieneExamenPublicado: examenPublicado.length > 0,
+  };
 }

@@ -5,17 +5,28 @@ import { db } from "@/db";
 import { classSessions, courses, enrollments, sessionAttendance } from "@/db/schema";
 import { requireUser } from "@/modules/auth/session";
 import { assertEnrolled } from "@/modules/auth/guards";
+import { sessionState } from "@/lib/datetime";
 
 export async function marcarProgreso(sessionId: string): Promise<void> {
   const u = await requireUser();
 
   const [row] = await db
-    .select({ courseId: classSessions.courseId, courseSlug: courses.slug })
+    .select({
+      courseId: classSessions.courseId,
+      courseSlug: courses.slug,
+      startsAt: classSessions.startsAt,
+      durationMinutes: classSessions.durationMinutes,
+    })
     .from(classSessions)
     .innerJoin(courses, eq(courses.id, classSessions.courseId))
     .where(eq(classSessions.id, sessionId))
     .limit(1);
   if (!row) throw new Error("Sesión no encontrada.");
+
+  // Las sesiones "grabado" no tienen fecha: están disponibles desde que se suben.
+  if (row.startsAt && sessionState(row.startsAt, row.durationMinutes) === "upcoming") {
+    throw new Error("Todavía no empieza esta sesión.");
+  }
 
   await assertEnrolled(u.id, row.courseId);
 

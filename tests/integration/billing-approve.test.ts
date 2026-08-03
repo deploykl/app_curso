@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
-  user, courses, orders, orderItems, paymentProofs, enrollments, instructorEarnings,
+  user, courses, orders, orderItems, paymentProofs, enrollments, instructorEarnings, certificates,
 } from "@/db/schema";
 
 let adminId: string;
@@ -38,8 +38,11 @@ const { sendEmail } = await import("@/modules/notifications/mailer");
 async function setupOrder() {
   await db.delete(instructorEarnings);
   await db.delete(paymentProofs);
-  await db.delete(enrollments);
+  // order_items referencia certificates (compras de certificado): debe
+  // borrarse antes que certificates o la FK revienta el DELETE.
   await db.delete(orderItems);
+  await db.delete(certificates);
+  await db.delete(enrollments);
   await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
@@ -91,8 +94,11 @@ beforeEach(setupOrder);
 afterAll(async () => {
   await db.delete(instructorEarnings);
   await db.delete(paymentProofs);
-  await db.delete(enrollments);
+  // order_items referencia certificates (compras de certificado): debe
+  // borrarse antes que certificates o la FK revienta el DELETE.
   await db.delete(orderItems);
+  await db.delete(certificates);
+  await db.delete(enrollments);
   await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
@@ -199,6 +205,42 @@ describe("aprobarPago", () => {
     expect(enrollmentsRows).toHaveLength(1);
     expect(enrollmentsRows[0].status).toBe("active");
     expect(enrollmentsRows[0].orderId).toBe(order2.id);
+  });
+
+  it("aprueba una orden de certificado: desbloquea el certificado sin tocar enrollments", async () => {
+    // El alumno ya está inscrito y aprobó el examen (certificado emitido, bloqueado).
+    const [enr] = await db.insert(enrollments).values({
+      userId: studentId, courseId: cursoId, status: "active",
+    }).returning();
+    const [cert] = await db.insert(certificates).values({
+      enrollmentId: enr.id, code: "CERT-0001", studentName: "Alumno", courseTitle: "Curso",
+      instructorName: "Prof", academyName: "Academia Demo", finalScore: "90.00",
+    }).returning();
+
+    const [certOrder] = await db.insert(orders).values({
+      userId: studentId, orderNumber: "PED-2026-9010",
+      subtotalCents: 5000, totalCents: 5000, status: "pending",
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+    }).returning();
+    await db.insert(orderItems).values({
+      orderId: certOrder.id, courseId: cursoId, instructorId: profId,
+      titleSnapshot: "Certificado: Curso", itemType: "certificado", certificateId: cert.id,
+      unitPriceCents: 5000, commissionRate: "30.00", commissionCents: 1500, netCents: 3500,
+    });
+    await db.insert(paymentProofs).values({
+      orderId: certOrder.id, method: "yape", payerFullName: "Alumno", payerDni: "12345678",
+      declaredAmountCents: 5000,
+      proofFileKey: "payment-proofs/x/cert.png", status: "pending",
+    });
+
+    await aprobarPago(certOrder.id);
+
+    const [certRow] = await db.select().from(certificates).where(eq(certificates.id, cert.id));
+    expect(certRow.paidAt).not.toBeNull();
+
+    // No creó ninguna inscripción nueva para esta orden de certificado.
+    const enrollmentsForOrder = await db.select().from(enrollments).where(eq(enrollments.orderId, certOrder.id));
+    expect(enrollmentsForOrder).toHaveLength(0);
   });
 });
 

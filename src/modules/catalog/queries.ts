@@ -1,4 +1,4 @@
-import { and, asc, count, countDistinct, eq, ilike, isNull, sql } from "drizzle-orm";
+import { and, asc, count, countDistinct, eq, gt, ilike, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   courses,
@@ -16,6 +16,7 @@ export interface CourseRow {
   title: string;
   subtitle: string | null;
   level: "basico" | "intermedio" | "avanzado";
+  deliveryMode: "en_vivo" | "grabado";
   categoryName: string | null;
   status: "draft" | "published" | "archived";
   priceCents: number;
@@ -31,6 +32,7 @@ export async function listInstructorCourses(instructorId: string): Promise<Cours
       title: courses.title,
       subtitle: courses.subtitle,
       level: courses.level,
+      deliveryMode: courses.deliveryMode,
       categoryName: categories.name,
       status: courses.status,
       priceCents: courses.priceCents,
@@ -70,6 +72,7 @@ export interface CourseCard {
   subtitle: string | null;
   coverUrl: string | null;
   level: string;
+  deliveryMode: "en_vivo" | "grabado";
   priceCents: number;
   instructorName: string;
   categoryName: string | null;
@@ -81,7 +84,7 @@ export interface PublicSession {
   orderIndex: number;
   title: string;
   descriptionMd: string | null;
-  startsAt: Date;
+  startsAt: Date | null;
   durationMinutes: number;
   isFreePreview: boolean;
   hasRecording: boolean;
@@ -95,6 +98,7 @@ export interface PublicCourse {
   descriptionMd: string | null;
   coverUrl: string | null;
   level: string;
+  deliveryMode: "en_vivo" | "grabado";
   priceCents: number;
   estimatedHours: string | null;
   instructorName: string;
@@ -122,6 +126,7 @@ export async function listPublishedCourses(filter: {
       subtitle: courses.subtitle,
       coverUrl: courses.coverUrl,
       level: courses.level,
+      deliveryMode: courses.deliveryMode,
       priceCents: courses.priceCents,
       instructorName: sql<string>`coalesce(${instructorProfiles.displayName}, ${user.name})`,
       categoryName: categories.name,
@@ -166,6 +171,52 @@ export async function getLandingStats(): Promise<LandingStats> {
   };
 }
 
+export interface NextLiveSession {
+  courseSlug: string;
+  courseTitle: string;
+  sessionTitle: string;
+  startsAt: Date;
+  durationMinutes: number;
+  instructorName: string;
+}
+
+/**
+ * La próxima clase en vivo (de cualquier curso publicado) que todavía no
+ * terminó — alimenta la vitrina "próxima clase en vivo" del hero: es la
+ * prueba más concreta de que "en vivo" no es solo un rótulo.
+ */
+export async function getNextLiveSession(): Promise<NextLiveSession | null> {
+  const [row] = await db
+    .select({
+      courseSlug: courses.slug,
+      courseTitle: courses.title,
+      sessionTitle: classSessions.title,
+      startsAt: classSessions.startsAt,
+      durationMinutes: classSessions.durationMinutes,
+      instructorName: sql<string>`coalesce(${instructorProfiles.displayName}, ${user.name})`,
+    })
+    .from(classSessions)
+    .innerJoin(courses, eq(courses.id, classSessions.courseId))
+    .innerJoin(user, eq(user.id, courses.instructorId))
+    .leftJoin(instructorProfiles, eq(instructorProfiles.userId, courses.instructorId))
+    .where(
+      and(
+        eq(courses.status, "published"),
+        eq(courses.deliveryMode, "en_vivo"),
+        gt(
+          sql`${classSessions.startsAt} + (${classSessions.durationMinutes} || ' minutes')::interval`,
+          sql`now()`
+        )
+      )
+    )
+    .orderBy(asc(classSessions.startsAt))
+    .limit(1);
+
+  // El where garantiza startsAt no nulo (se compara contra now()); el tipo
+  // de columna es nullable porque los cursos grabados no la usan.
+  return row ? { ...row, startsAt: row.startsAt! } : null;
+}
+
 export async function getPublicCourse(slug: string): Promise<PublicCourse | null> {
   const [c] = await db
     .select({
@@ -176,6 +227,7 @@ export async function getPublicCourse(slug: string): Promise<PublicCourse | null
       descriptionMd: courses.descriptionMd,
       coverUrl: courses.coverUrl,
       level: courses.level,
+      deliveryMode: courses.deliveryMode,
       priceCents: courses.priceCents,
       estimatedHours: courses.estimatedHours,
       instructorName: sql<string>`coalesce(${instructorProfiles.displayName}, ${user.name})`,
@@ -203,7 +255,7 @@ export async function getPublicCourse(slug: string): Promise<PublicCourse | null
       startsAt: classSessions.startsAt,
       durationMinutes: classSessions.durationMinutes,
       isFreePreview: classSessions.isFreePreview,
-      hasRecording: sql<boolean>`${classSessions.recordingUrl} is not null`,
+      hasRecording: sql<boolean>`${classSessions.recordingUrl} is not null or ${classSessions.videoFileKey} is not null`,
     })
     .from(classSessions)
     .where(eq(classSessions.courseId, c.id))

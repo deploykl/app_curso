@@ -7,10 +7,16 @@ export const courseInputSchema = z.object({
   categoryId: z.string().uuid().optional(),
   level: z.enum(["basico", "intermedio", "avanzado"]),
   priceSoles: z.coerce.number().min(0).max(100_000),
-  estimatedHours: z.coerce.number().min(0).max(1000).optional(),
+  // Vacío/0 = el certificado se entrega gratis al aprobar el examen.
+  certificatePriceSoles: z.coerce.number().min(0).max(100_000).optional(),
 });
 
 export type CourseInput = z.infer<typeof courseInputSchema>;
+
+/** El modo de dictado solo se elige al crear el curso: cambiarlo después dejaría sesiones inconsistentes (con/sin fecha). */
+export const createCourseInputSchema = courseInputSchema.extend({
+  deliveryMode: z.enum(["en_vivo", "grabado"]).default("en_vivo"),
+});
 
 export function resolveCommissionRate(
   courseOverride: string | null,
@@ -20,17 +26,11 @@ export function resolveCommissionRate(
 }
 
 export interface PublishCheck {
-  title: string;
-  priceCents: number;
   sessionCount: number;
-  estimatedHours: string | null;
 }
 
 export function canPublish(c: PublishCheck): { ok: true } | { ok: false; reason: string } {
   if (c.sessionCount < 1) return { ok: false, reason: "Agrega al menos una sesión antes de publicar." };
-  if (c.estimatedHours === null) {
-    return { ok: false, reason: "Indica las horas estimadas: se imprimen en el certificado." };
-  }
   return { ok: true };
 }
 
@@ -57,6 +57,48 @@ export function limaLocalToUtc(local: string): Date {
   return new Date(asUtc - offsetMs);
 }
 
+export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024; // 1 GB
+
+const ALLOWED_VIDEO_MIME_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+
+export interface VideoUploadInput {
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export function validateVideoUpload(input: VideoUploadInput):
+  | { ok: true }
+  | { ok: false; reason: string } {
+  if (!ALLOWED_VIDEO_MIME_TYPES.has(input.mimeType)) {
+    return { ok: false, reason: `Formato de video no permitido: ${input.mimeType}` };
+  }
+  if (input.sizeBytes <= 0) return { ok: false, reason: "El archivo está vacío." };
+  if (input.sizeBytes > MAX_VIDEO_BYTES) {
+    return { ok: false, reason: "El video excede el tamaño máximo de 1 GB." };
+  }
+  return { ok: true };
+}
+
+export function sessionVideoKey(sessionId: string, fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  const rawExt = dot > 0 ? fileName.slice(dot + 1) : "mp4";
+  const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "mp4";
+  return `session-videos/${sessionId}/${Date.now()}.${ext}`;
+}
+
+/** Igual que sessionVideoKey, pero para subir el video desde "Detalles del curso" antes de que exista la sesión. */
+export function courseVideoKey(courseId: string, fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  const rawExt = dot > 0 ? fileName.slice(dot + 1) : "mp4";
+  const ext = rawExt.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8) || "mp4";
+  return `session-videos/${courseId}/${Date.now()}.${ext}`;
+}
+
 function limaOffsetMs(at: Date): number {
   const fmt = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Lima", hour12: false,
@@ -71,13 +113,22 @@ function limaOffsetMs(at: Date): number {
   return asIfUtc - at.getTime();
 }
 
-export const classSessionInputSchema = z.object({
-  title: z.string().trim().min(3).max(160),
-  descriptionMd: z.string().trim().max(5000).optional(),
-  startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Fecha y hora requeridas"),
-  durationMinutes: z.coerce.number().int().min(1).max(480),
-  zoomUrl: z.string().trim().refine((v) => v === "" || isValidZoomUrl(v), {
-    message: "Debe ser un enlace https de Zoom, Google Meet o Teams.",
-  }).optional(),
-  isFreePreview: z.coerce.boolean().default(false),
-});
+export const classSessionInputSchema = z.discriminatedUnion("deliveryMode", [
+  z.object({
+    deliveryMode: z.literal("en_vivo"),
+    descriptionMd: z.string().trim().max(5000).optional(),
+    startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Fecha y hora requeridas"),
+    durationMinutes: z.coerce.number().int().min(1).max(480),
+    zoomUrl: z.string().trim().refine((v) => v === "" || isValidZoomUrl(v), {
+      message: "Debe ser un enlace https de Zoom, Google Meet o Teams.",
+    }).optional(),
+    isFreePreview: z.coerce.boolean().default(false),
+  }),
+  z.object({
+    deliveryMode: z.literal("grabado"),
+    descriptionMd: z.string().trim().max(5000).optional(),
+    durationMinutes: z.coerce.number().int().min(1).max(480),
+    videoFileKey: z.string().trim().min(1).optional(),
+    isFreePreview: z.coerce.boolean().default(false),
+  }),
+]);

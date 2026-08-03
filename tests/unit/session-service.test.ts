@@ -38,7 +38,7 @@ describe("isValidZoomUrl", () => {
 
 describe("classSessionInputSchema", () => {
   const ok = {
-    title: "Clase 1", startsAtLocal: "2026-08-15T10:00",
+    deliveryMode: "en_vivo" as const, startsAtLocal: "2026-08-15T10:00",
     durationMinutes: 90, isFreePreview: false,
   };
 

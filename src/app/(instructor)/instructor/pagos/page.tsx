@@ -1,3 +1,4 @@
+import { CreditCard } from "lucide-react";
 import { requireUser } from "@/modules/auth/session";
 import {
   getInstructorEarningsSummary,
@@ -6,8 +7,15 @@ import {
 } from "@/modules/earnings/queries";
 import { ViewProofButton } from "@/modules/earnings/ui/view-proof-button";
 import { getPlatformSettings } from "@/modules/settings/queries";
+import { getPayoutMethod } from "@/modules/profiles/queries";
+import { PayoutMethodForm } from "@/modules/profiles/ui/payout-method-form";
+import { ViewPayoutQrButton } from "@/modules/profiles/ui/view-payout-qr-button";
 import { formatPEN } from "@/lib/money";
 import { formatLima } from "@/lib/datetime";
+
+const PAYOUT_METHOD_LABEL: Record<string, string> = {
+  yape: "Yape", plin: "Plin", transferencia: "Transferencia bancaria", interbancario: "Transferencia interbancaria (CCI)",
+};
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendiente",
@@ -25,11 +33,12 @@ const STATUS_CLASS: Record<string, string> = {
 
 export default async function InstructorPagosPage() {
   const u = await requireUser();
-  const [resumen, ganancias, pagos, { earningAvailableDays }] = await Promise.all([
+  const [resumen, ganancias, pagos, { earningAvailableDays }, metodoPago] = await Promise.all([
     getInstructorEarningsSummary(u.id),
     listInstructorEarnings(u.id),
     listPayouts(u.id),
     getPlatformSettings(),
+    getPayoutMethod(u.id),
   ]);
 
   return (
@@ -39,6 +48,36 @@ export default async function InstructorPagosPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Lo que ganas por cada venta, después de la comisión de la plataforma.
         </p>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-3">
+          <div className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            <CreditCard className="size-5" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Método de cobro
+            </p>
+            {metodoPago?.payoutMethod ? (
+              <>
+                <p className="font-medium">
+                  {PAYOUT_METHOD_LABEL[metodoPago.payoutMethod]} · {metodoPago.payoutHolderName}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {metodoPago.payoutIdentifier}
+                  {metodoPago.payoutBankName ? ` · ${metodoPago.payoutBankName}` : ""}
+                </p>
+                {metodoPago.payoutQrImageKey && <ViewPayoutQrButton instructorId={u.id} />}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Todavía no lo configuras. El admin no sabrá a dónde depositarte.
+              </p>
+            )}
+          </div>
+        </div>
+        <PayoutMethodForm info={metodoPago} triggerLabel={metodoPago?.payoutMethod ? "Editar" : "Configurar"} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { FileInput } from "@/components/ui/file-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPEN } from "@/lib/money";
@@ -23,6 +24,7 @@ export function PaymentProofForm({
   const [token, setToken] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [dni, setDni] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +32,8 @@ export function PaymentProofForm({
     const file = fileInputRef.current?.files?.[0];
     if (!file) return setError("Adjunta la captura o foto del comprobante.");
     if (!token) return setError("Completa la verificación de seguridad.");
+
+    if (!/^\d{8}$/.test(dni)) return setError("El DNI debe tener 8 dígitos numéricos.");
 
     const form = new FormData(e.currentTarget);
     setSubmitting(true);
@@ -52,7 +56,7 @@ export function PaymentProofForm({
       await submitPaymentProof(orderId, {
         method: String(form.get("method")),
         payerFullName: String(form.get("payerFullName")),
-        payerDni: String(form.get("payerDni")),
+        payerDni: dni,
         fileKey: presign.key,
         turnstileToken: token,
       });
@@ -69,7 +73,7 @@ export function PaymentProofForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-lg border border-border p-5">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
       <h2 className="text-lg font-medium">Subir comprobante</h2>
 
       <div className="flex flex-col gap-2">
@@ -88,7 +92,17 @@ export function PaymentProofForm({
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="payerDni">DNI</Label>
-          <Input id="payerDni" name="payerDni" required minLength={6} />
+          <Input
+            id="payerDni"
+            name="payerDni"
+            required
+            inputMode="numeric"
+            pattern="\d{8}"
+            maxLength={8}
+            placeholder="8 dígitos"
+            value={dni}
+            onChange={(e) => setDni(e.target.value.replace(/\D/g, "").slice(0, 8))}
+          />
         </div>
       </div>
 
@@ -99,7 +113,12 @@ export function PaymentProofForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="proof-file">Captura o foto del comprobante</Label>
-        <input ref={fileInputRef} id="proof-file" type="file" accept="image/png,image/jpeg,application/pdf" className="text-sm" />
+        <FileInput
+          ref={fileInputRef}
+          id="proof-file"
+          accept="image/png,image/jpeg,application/pdf"
+          hint="PNG, JPG o PDF · máx. 10 MB"
+        />
       </div>
 
       <TurnstileWidget onToken={setToken} />

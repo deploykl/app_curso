@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { responder, enviarIntento } from "@/modules/assessment/actions";
@@ -45,6 +46,7 @@ export function IntentoRunner({
 
   const actual = preguntas[indice];
   const respondidas = preguntas.filter((p) => respuestas[p.id]).length;
+  const percent = Math.round((respondidas / preguntas.length) * 100);
 
   function elegir(questionId: string, optionId: string) {
     const previo = respuestas[questionId] ?? null;
@@ -78,38 +80,82 @@ export function IntentoRunner({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-col">
-          <h1 className="text-xl font-semibold">{examTitle}</h1>
-          <p className="text-sm text-muted-foreground">{courseTitle}</p>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {courseTitle}
+            </p>
+            <h1 className="text-xl font-semibold tracking-tight">{examTitle}</h1>
+          </div>
+          {expiresAtISO && <CuentaRegresiva expiresAtISO={expiresAtISO} />}
         </div>
-        {expiresAtISO && <CuentaRegresiva expiresAtISO={expiresAtISO} />}
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              Pregunta {actual.numero} de {preguntas.length}
+            </span>
+            <span>{respondidas} de {preguntas.length} respondidas</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Pregunta {actual.numero} de {preguntas.length} · {respondidas} respondidas
-      </p>
-
-      <div className="flex flex-col gap-4 rounded-md border border-border p-4">
-        <p className="font-medium">{actual.promptMd}</p>
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+        <p className="text-base font-medium leading-relaxed text-balance">{actual.promptMd}</p>
         <ul className="flex flex-col gap-2">
-          {actual.opciones.map((o) => (
-            <li key={o.id}>
-              <label className="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-muted">
-                <input
-                  type="radio"
-                  name={`pregunta-${actual.id}`}
-                  checked={respuestas[actual.id] === o.id}
-                  onChange={() => elegir(actual.id, o.id)}
-                />
-                <span>{o.text}</span>
-              </label>
-            </li>
-          ))}
+          {actual.opciones.map((o) => {
+            const seleccionada = respuestas[actual.id] === o.id;
+            return (
+              <li key={o.id}>
+                <label
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-colors ${
+                    seleccionada
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-muted/40"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`pregunta-${actual.id}`}
+                    checked={seleccionada}
+                    onChange={() => elegir(actual.id, o.id)}
+                    className="sr-only"
+                  />
+                  <span
+                    className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                      seleccionada ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                    }`}
+                  >
+                    {seleccionada && <Check className="size-3" strokeWidth={3} />}
+                  </span>
+                  <span className="text-sm">{o.text}</span>
+                </label>
+              </li>
+            );
+          })}
         </ul>
         <p className="h-4 text-xs text-muted-foreground">
-          {guardando === actual.id ? "Guardando..." : respuestas[actual.id] ? "✓ guardado" : ""}
+          {guardando === actual.id ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Loader2 className="size-3 animate-spin" />
+              Guardando...
+            </span>
+          ) : respuestas[actual.id] ? (
+            <span className="inline-flex items-center gap-1 text-success">
+              <Check className="size-3.5" strokeWidth={3} />
+              Guardado
+            </span>
+          ) : (
+            ""
+          )}
         </p>
       </div>
 
@@ -120,13 +166,13 @@ export function IntentoRunner({
             type="button"
             onClick={() => setIndice(i)}
             aria-current={i === indice ? "true" : undefined}
-            className={
+            className={`grid size-9 place-items-center rounded-lg border text-sm font-medium transition-colors ${
               i === indice
-                ? "size-9 rounded-md border border-primary bg-primary text-sm text-primary-foreground"
+                ? "border-primary bg-primary text-primary-foreground"
                 : respuestas[p.id]
-                  ? "size-9 rounded-md border border-primary text-sm"
-                  : "size-9 rounded-md border border-border text-sm text-muted-foreground"
-            }
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-muted"
+            }`}
           >
             {p.numero}
           </button>
@@ -135,6 +181,14 @@ export function IntentoRunner({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
+      {respondidas < preguntas.length && indice === preguntas.length - 1 && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-warning/30 bg-warning/10 p-3.5 text-sm text-warning-foreground">
+          <AlertTriangle className="size-4 shrink-0" />
+          Te faltan {preguntas.length - respondidas} pregunta{preguntas.length - respondidas === 1 ? "" : "s"} por
+          responder. Si envías ahora, contarán como incorrectas.
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <Button
           type="button"
@@ -142,12 +196,14 @@ export function IntentoRunner({
           disabled={indice === 0}
           onClick={() => setIndice((i) => i - 1)}
         >
-          ‹ Anterior
+          <ChevronLeft className="size-4" />
+          Anterior
         </Button>
 
         {indice < preguntas.length - 1 ? (
           <Button type="button" onClick={() => setIndice((i) => i + 1)}>
-            Siguiente ›
+            Siguiente
+            <ChevronRight className="size-4" />
           </Button>
         ) : (
           <Button type="button" disabled={isPending} onClick={enviar}>
@@ -155,13 +211,6 @@ export function IntentoRunner({
           </Button>
         )}
       </div>
-
-      {respondidas < preguntas.length && indice === preguntas.length - 1 && (
-        <p className="text-sm text-muted-foreground">
-          Te faltan {preguntas.length - respondidas} preguntas por responder. Si envías ahora,
-          contarán como incorrectas.
-        </p>
-      )}
     </div>
   );
 }

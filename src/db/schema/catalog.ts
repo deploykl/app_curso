@@ -3,6 +3,7 @@ import { user } from "./auth";
 
 export const courseLevel = pgEnum("course_level", ["basico", "intermedio", "avanzado"]);
 export const courseStatus = pgEnum("course_status", ["draft", "published", "archived"]);
+export const courseDeliveryMode = pgEnum("course_delivery_mode", ["en_vivo", "grabado"]);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -21,7 +22,10 @@ export const courses = pgTable("courses", {
   descriptionMd: text("description_md"),
   coverUrl: text("cover_url"),
   level: courseLevel("level").notNull().default("basico"),
+  deliveryMode: courseDeliveryMode("delivery_mode").notNull().default("en_vivo"),
   priceCents: integer("price_cents").notNull(),
+  // null/0 = el certificado se entrega gratis al aprobar el examen.
+  certificatePriceCents: integer("certificate_price_cents"),
   currency: text("currency").notNull().default("PEN"),
   status: courseStatus("status").notNull().default("draft"),
   publishedAt: timestamp("published_at", { withTimezone: true }),

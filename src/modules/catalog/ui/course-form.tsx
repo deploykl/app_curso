@@ -20,7 +20,7 @@ interface CourseFormValues {
   categoryId?: string | null;
   level: "basico" | "intermedio" | "avanzado";
   priceSoles: string;
-  estimatedHours?: string | null;
+  certificatePriceSoles?: string | null;
 }
 
 export function CourseForm({
@@ -35,22 +35,12 @@ export function CourseForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
-
-  const initialHoras = initialValues?.estimatedHours
-    ? Math.floor(Number(initialValues.estimatedHours))
-    : undefined;
-  const initialMinutos = initialValues?.estimatedHours
-    ? Math.round((Number(initialValues.estimatedHours) % 1) * 60)
-    : undefined;
+  const [deliveryMode, setDeliveryMode] = useState<"en_vivo" | "grabado">("en_vivo");
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const form = new FormData(e.currentTarget);
-
-    const horas = Number(form.get("estimatedHoursH") ?? "0") || 0;
-    const minutos = Number(form.get("estimatedHoursM") ?? "0") || 0;
-    const duracion = horas + minutos / 60;
 
     const raw = {
       title: String(form.get("title") ?? ""),
@@ -59,7 +49,8 @@ export function CourseForm({
       categoryId: String(form.get("categoryId") ?? "") || undefined,
       level: String(form.get("level") ?? "basico"),
       priceSoles: String(form.get("priceSoles") ?? "0"),
-      estimatedHours: duracion > 0 ? duracion : undefined,
+      certificatePriceSoles: String(form.get("certificatePriceSoles") ?? "") || undefined,
+      ...(courseId ? {} : { deliveryMode }),
     };
 
     startTransition(async () => {
@@ -84,6 +75,35 @@ export function CourseForm({
 
   return (
     <form onSubmit={onSubmit} className="flex max-w-xl flex-col gap-4">
+      {!courseId && (
+        <div className="flex flex-col gap-2">
+          <Label>Modo de dictado</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setDeliveryMode("en_vivo")}
+              className={`rounded-md border px-3 py-2 text-left text-sm ${
+                deliveryMode === "en_vivo" ? "border-primary bg-accent" : "border-input"
+              }`}
+            >
+              <span className="block font-medium">En vivo</span>
+              <span className="block text-xs text-muted-foreground">Clases por Zoom en fecha y hora fijas</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryMode("grabado")}
+              className={`rounded-md border px-3 py-2 text-left text-sm ${
+                deliveryMode === "grabado" ? "border-primary bg-accent" : "border-input"
+              }`}
+            >
+              <span className="block font-medium">Grabado</span>
+              <span className="block text-xs text-muted-foreground">Subes el video de cada clase, sin horario fijo</span>
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">No se puede cambiar después de creado el curso.</p>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <Label htmlFor="title">Título</Label>
         <Input id="title" name="title" required minLength={3} defaultValue={initialValues?.title} />
@@ -143,35 +163,20 @@ export function CourseForm({
             required
             defaultValue={initialValues?.priceSoles}
           />
+          <p className="text-xs text-muted-foreground">S/ 0 = curso gratis, sin comprobante ni aprobación.</p>
         </div>
+
         <div className="flex flex-col gap-2">
-          <Label htmlFor="estimatedHoursH">Horas estimadas</Label>
-          <div className="flex items-center gap-1.5">
-            <Input
-              id="estimatedHoursH"
-              name="estimatedHoursH"
-              type="number"
-              min={0}
-              max={999}
-              step={1}
-              placeholder="HH"
-              className="w-full"
-              defaultValue={initialHoras}
-            />
-            <span className="text-sm text-muted-foreground">h</span>
-            <Input
-              id="estimatedHoursM"
-              name="estimatedHoursM"
-              type="number"
-              min={0}
-              max={59}
-              step={1}
-              placeholder="MM"
-              className="w-full"
-              defaultValue={initialMinutos}
-            />
-            <span className="text-sm text-muted-foreground">min</span>
-          </div>
+          <Label htmlFor="certificatePriceSoles">Precio del certificado (S/)</Label>
+          <Input
+            id="certificatePriceSoles"
+            name="certificatePriceSoles"
+            type="number"
+            min={0}
+            step="0.01"
+            defaultValue={initialValues?.certificatePriceSoles ?? ""}
+          />
+          <p className="text-xs text-muted-foreground">Vacío o 0 = el certificado se entrega gratis al aprobar el examen.</p>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
+import { TiltCard } from "@/components/motion/tilt-card";
 import { CourseCard } from "@/components/landing/course-card";
 import type { CourseCard as CourseCardData } from "@/modules/catalog/queries";
 
@@ -33,7 +34,9 @@ export function FeaturedCourses({ courses }: { courses: CourseCardData[] }) {
           className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           {courses.map((c) => (
-            <CourseCard key={c.id} course={c} />
+            <TiltCard key={c.id}>
+              <CourseCard course={c} />
+            </TiltCard>
           ))}
         </Reveal>
       </div>

@@ -27,6 +27,15 @@ export default async function VerificarPage({
         </div>
       )}
 
+      {r?.estado === "pendiente_pago" && (
+        <div className="rounded-md border border-border p-6">
+          <Badge variant="secondary">Pendiente</Badge>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Este certificado todavía no fue emitido.
+          </p>
+        </div>
+      )}
+
       {r?.estado === "revocado" && (
         <div className="rounded-md border border-border p-6">
           <Badge variant="secondary">Revocado</Badge>

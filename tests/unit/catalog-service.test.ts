@@ -41,21 +41,13 @@ describe("resolveCommissionRate", () => {
 });
 
 describe("canPublish", () => {
-  const base = { title: "X", priceCents: 19900, sessionCount: 2, estimatedHours: "8.00" };
-
-  it("permite publicar un curso completo", () => {
-    expect(canPublish(base)).toEqual({ ok: true });
+  it("permite publicar un curso con sesiones", () => {
+    expect(canPublish({ sessionCount: 2 })).toEqual({ ok: true });
   });
 
   it("bloquea si no hay sesiones", () => {
-    const r = canPublish({ ...base, sessionCount: 0 });
+    const r = canPublish({ sessionCount: 0 });
     expect(r.ok).toBe(false);
     expect((r as { reason: string }).reason).toMatch(/sesión/i);
-  });
-
-  it("bloquea si faltan las horas estimadas", () => {
-    const r = canPublish({ ...base, estimatedHours: null });
-    expect(r.ok).toBe(false);
-    expect((r as { reason: string }).reason).toMatch(/horas/i);
   });
 });

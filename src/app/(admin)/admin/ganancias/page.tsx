@@ -7,8 +7,13 @@ import {
 } from "@/modules/earnings/queries";
 import { PayoutButton } from "@/modules/earnings/ui/payout-button";
 import { ViewProofButton } from "@/modules/earnings/ui/view-proof-button";
+import { ViewPayoutQrButton } from "@/modules/profiles/ui/view-payout-qr-button";
 import { formatPEN } from "@/lib/money";
 import { formatLima } from "@/lib/datetime";
+
+const PAYOUT_METHOD_LABEL: Record<string, string> = {
+  yape: "Yape", plin: "Plin", transferencia: "Transferencia", interbancario: "Interbancario",
+};
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendiente",
@@ -80,6 +85,7 @@ export default async function AdminGananciasPage() {
               <thead>
                 <tr className="border-b border-border text-left text-muted-foreground">
                   <th className="px-4 py-2 font-medium">Instructor</th>
+                  <th className="px-4 py-2 font-medium">Depositarle a</th>
                   <th className="px-4 py-2 text-right font-medium">Comisión</th>
                   <th className="px-4 py-2 text-right font-medium">Pendiente</th>
                   <th className="px-4 py-2 text-right font-medium">Disponible</th>
@@ -92,6 +98,22 @@ export default async function AdminGananciasPage() {
                 {porInstructor.map((i) => (
                   <tr key={i.instructorId} className="border-b border-border last:border-0">
                     <td className="px-4 py-2 font-medium">{i.instructorName}</td>
+                    <td className="px-4 py-2">
+                      {i.payoutMethod ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">
+                            {PAYOUT_METHOD_LABEL[i.payoutMethod]} · {i.payoutHolderName}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {i.payoutIdentifier}
+                            {i.payoutBankName ? ` · ${i.payoutBankName}` : ""}
+                          </span>
+                          {i.hasPayoutQr && <ViewPayoutQrButton instructorId={i.instructorId} />}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Sin configurar</span>
+                      )}
+                    </td>
                     <td className="px-4 py-2 text-right tabular-nums text-muted-foreground">
                       {i.commissionRate}%
                     </td>

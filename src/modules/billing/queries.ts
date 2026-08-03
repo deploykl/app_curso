@@ -51,12 +51,39 @@ export async function findPendingOrderForCourse(userId: string, courseId: string
   return row ?? null;
 }
 
+/**
+ * Orden pendiente y no vencida de este usuario para este certificado, si la
+ * hay. Igual que `findPendingOrderForCourse` pero para compras de certificado.
+ */
+export async function findPendingOrderForCertificate(userId: string, certificateId: string) {
+  const [row] = await db
+    .select({ orderNumber: orders.orderNumber, expiresAt: orders.expiresAt })
+    .from(orders)
+    .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        eq(orders.userId, userId),
+        eq(orderItems.certificateId, certificateId),
+        eq(orders.status, "pending"),
+        sql`${orders.expiresAt} > now()`
+      )
+    )
+    .orderBy(sql`${orders.createdAt} desc`)
+    .limit(1);
+  return row ?? null;
+}
+
 export async function getActivePaymentDestinations() {
   return db
     .select()
     .from(paymentDestinations)
     .where(eq(paymentDestinations.isActive, true))
     .orderBy(paymentDestinations.orderIndex);
+}
+
+/** Para el CRUD del admin: incluye los destinos inactivos, que no se muestran en `/pago`. */
+export async function listAllPaymentDestinations() {
+  return db.select().from(paymentDestinations).orderBy(paymentDestinations.orderIndex);
 }
 
 export async function findCouponByCode(code: string) {

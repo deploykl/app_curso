@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, PenSquare, Users } from "lucide-react";
+import { env } from "@/env";
 import { requireUser } from "@/modules/auth/session";
 import { listInstructorCourses } from "@/modules/catalog/queries";
 import { categoryColor } from "@/modules/catalog/category-colors";
@@ -7,6 +8,8 @@ import { formatPEN } from "@/lib/money";
 import { db } from "@/db";
 import { categories } from "@/db/schema";
 import { NewCourseDialog } from "@/modules/catalog/ui/new-course-dialog";
+import { DeleteCourseButton } from "@/modules/catalog/ui/delete-course-button";
+import { CopyCourseLinkButton } from "@/modules/catalog/ui/share-course-link";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Borrador",
@@ -114,9 +117,14 @@ export default async function InstructorCoursesPage() {
                     <div className="grid size-10 place-items-center rounded-lg bg-white/20 text-sm font-bold backdrop-blur-sm">
                       {monogram}
                     </div>
-                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-wide">
-                      {LEVEL_LABEL[c.level]}
-                    </span>
+                    <div className="flex gap-1">
+                      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-wide">
+                        {c.deliveryMode === "en_vivo" ? "En vivo" : "Grabado"}
+                      </span>
+                      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-wide">
+                        {LEVEL_LABEL[c.level]}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex flex-1 flex-col gap-2 p-4">
@@ -146,6 +154,9 @@ export default async function InstructorCoursesPage() {
                     <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
                       <span className="text-base font-bold tabular-nums">{formatPEN(c.priceCents)}</span>
                       <div className="flex gap-1.5">
+                        {c.status === "published" && (
+                          <CopyCourseLinkButton url={`${env.NEXT_PUBLIC_APP_URL}/cursos/${c.slug}`} />
+                        )}
                         <Link
                           href={`/instructor/cursos/${c.id}/sesiones`}
                           aria-label="Sesiones"
@@ -162,6 +173,7 @@ export default async function InstructorCoursesPage() {
                         >
                           <PenSquare className="size-3.5" />
                         </Link>
+                        <DeleteCourseButton courseId={c.id} courseTitle={c.title} />
                       </div>
                     </div>
                   </div>

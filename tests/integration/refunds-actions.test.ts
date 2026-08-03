@@ -60,10 +60,12 @@ async function crearOrdenPagada(status: "paid" | "pending" | "refunded" = "paid"
 }
 
 beforeEach(async () => {
+  // order_items referencia certificates (compras de certificado): debe
+  // borrarse antes que certificates o la FK revienta el DELETE.
+  await db.delete(orderItems);
   await db.delete(certificates);
   await db.delete(instructorEarnings);
   await db.delete(enrollments);
-  await db.delete(orderItems);
   await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
@@ -92,10 +94,12 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
+  // order_items referencia certificates (compras de certificado): debe
+  // borrarse antes que certificates o la FK revienta el DELETE.
+  await db.delete(orderItems);
   await db.delete(certificates);
   await db.delete(instructorEarnings);
   await db.delete(enrollments);
-  await db.delete(orderItems);
   await db.delete(orders);
   await db.delete(courses);
   await db.delete(user);
@@ -158,5 +162,35 @@ describe("revocarAcceso", () => {
 
   it("rechaza una orden inexistente", async () => {
     await expect(revocarAcceso(crypto.randomUUID(), "Motivo")).rejects.toThrow(/no encontrada/i);
+  });
+
+  it("reembolso de una compra de certificado solo re-bloquea el certificado, sin desinscribir", async () => {
+    const { enrollmentId } = await crearOrdenPagada("paid", false);
+    const [cert] = await db.insert(certificates).values({
+      enrollmentId, code: "CERT-9999", studentName: "Alumno", courseTitle: "Curso",
+      instructorName: "Prof", academyName: "Academia Demo", finalScore: "90.00",
+      paidAt: new Date(), pdfKey: "certificates/x/cert.pdf",
+    }).returning();
+
+    const [certOrder] = await db.insert(orders).values({
+      userId: studentId, orderNumber: "PED-2026-9020",
+      subtotalCents: 5000, totalCents: 5000, status: "paid", paidAt: new Date(),
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
+    }).returning();
+    await db.insert(orderItems).values({
+      orderId: certOrder.id, courseId: cursoId, instructorId: profId,
+      titleSnapshot: "Certificado: Curso", itemType: "certificado", certificateId: cert.id,
+      unitPriceCents: 5000, commissionRate: "30.00", commissionCents: 1500, netCents: 3500,
+    });
+
+    await revocarAcceso(certOrder.id, "Reembolso del certificado");
+
+    const [certRow] = await db.select().from(certificates).where(eq(certificates.id, cert.id));
+    expect(certRow.paidAt).toBeNull();
+    expect(certRow.revokedAt).toBeNull(); // no es una revocación total, solo re-bloqueo
+
+    // La inscripción del curso (de otra orden) sigue activa: no se tocó.
+    const [enr] = await db.select().from(enrollments).where(eq(enrollments.id, enrollmentId));
+    expect(enr.status).toBe("active");
   });
 });

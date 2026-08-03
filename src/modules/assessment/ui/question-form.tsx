@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Check, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +106,7 @@ export function QuestionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-md border border-border p-4">
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Label htmlFor="type">Tipo</Label>
@@ -137,13 +138,22 @@ export function QuestionForm({
         <p className="text-xs text-muted-foreground">Marca el círculo de la opción correcta.</p>
         {opciones.map((o, i) => (
           <div key={i} className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="correcta"
-              checked={o.isCorrect}
-              onChange={() => marcarCorrecta(i)}
-              aria-label={`Marcar opción ${i + 1} como correcta`}
-            />
+            <label className="flex cursor-pointer items-center" aria-label={`Marcar opción ${i + 1} como correcta`}>
+              <input
+                type="radio"
+                name="correcta"
+                checked={o.isCorrect}
+                onChange={() => marcarCorrecta(i)}
+                className="sr-only"
+              />
+              <span
+                className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                  o.isCorrect ? "border-primary bg-primary text-primary-foreground" : "border-input"
+                }`}
+              >
+                {o.isCorrect && <Check className="size-3" strokeWidth={3} />}
+              </span>
+            </label>
             <Input
               value={o.text}
               onChange={(e) => cambiarTexto(i, e.target.value)}
@@ -152,14 +162,23 @@ export function QuestionForm({
               readOnly={tipo === "true_false"}
             />
             {tipo === "mcq" && opciones.length > 2 && (
-              <Button type="button" variant="ghost" onClick={() => quitarOpcion(i)}>
-                Quitar
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Quitar opción ${i + 1}`}
+                title="Quitar opción"
+                onClick={() => quitarOpcion(i)}
+                className="shrink-0 text-muted-foreground hover:text-destructive"
+              >
+                <X className="size-4" />
               </Button>
             )}
           </div>
         ))}
         {tipo === "mcq" && opciones.length < 8 && (
-          <Button type="button" variant="outline" onClick={agregarOpcion} className="self-start">
+          <Button type="button" variant="outline" onClick={agregarOpcion} className="w-fit gap-1.5">
+            <Plus className="size-4" />
             Agregar opción
           </Button>
         )}

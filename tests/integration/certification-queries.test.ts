@@ -44,6 +44,7 @@ describe("getCertificadoPublico", () => {
     await db.insert(certificates).values({
       enrollmentId, code: "AB23-CD45", studentName: "Alumno", courseTitle: "Curso X",
       instructorName: "Prof", academyName: "Academia Demo", hours: "10.00", finalScore: "90.00",
+      paidAt: new Date(),
     });
 
     const r = await getCertificadoPublico("AB23-CD45");
@@ -73,6 +74,17 @@ describe("getCertificadoPublico", () => {
       expect(r!.revokedAt).toEqual(new Date("2026-05-01T00:00:00Z"));
       expect(Object.keys(r!).sort()).toEqual(["estado", "revokedAt"].sort());
     }
+  });
+
+  it("devuelve pendiente_pago sin filtrar datos si el certificado no fue pagado", async () => {
+    await db.insert(certificates).values({
+      enrollmentId, code: "AB23-CD45", studentName: "Alumno", courseTitle: "Curso X",
+      instructorName: "Prof", academyName: "Academia Demo", finalScore: "90.00",
+    });
+
+    const r = await getCertificadoPublico("AB23-CD45");
+    expect(r!.estado).toBe("pendiente_pago");
+    expect(Object.keys(r!).sort()).toEqual(["estado"]);
   });
 
   it("devuelve null para un código inexistente", async () => {

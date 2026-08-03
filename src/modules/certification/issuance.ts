@@ -36,6 +36,7 @@ export async function emitirCertificado(
       studentName: user.name,
       courseTitle: courses.title,
       hours: courses.estimatedHours,
+      certificatePriceCents: courses.certificatePriceCents,
       // El perfil del instructor es opcional en todo el repo (ver
       // catalog/queries.ts, billing/actions.ts): si no tiene fila en
       // `instructorProfiles`, o no tiene `displayName`, se cae al `name` de
@@ -85,6 +86,10 @@ export async function emitirCertificado(
   // drizzle-orm/postgres-js/session.js: `client.savepoint(...)`). Si choca,
   // Drizzle hace ROLLBACK TO SAVEPOINT automáticamente al propagar el error y
   // la `tx` externa sigue viva para reintentar con un código nuevo.
+  // Si el curso tiene precio de certificado, se emite bloqueado (paidAt null)
+  // hasta que se apruebe una compra de certificado (ver billing/actions.ts).
+  const paidAt = datos.certificatePriceCents && datos.certificatePriceCents > 0 ? null : new Date();
+
   const MAX_REINTENTOS = 5;
   for (let intento = 0; intento < MAX_REINTENTOS; intento++) {
     const code = generarCodigo();
@@ -101,6 +106,7 @@ export async function emitirCertificado(
             academyName: env.ACADEMIA_NAME,
             hours: datos.hours,
             finalScore: scorePct.toFixed(2),
+            paidAt,
           })
           .onConflictDoUpdate({
             target: certificates.enrollmentId,
@@ -116,6 +122,7 @@ export async function emitirCertificado(
               pdfKey: null,
               revokedAt: null,
               revokeReason: null,
+              paidAt,
             },
             // Solo reactivamos si la fila existente está revocada. Si sigue
             // vigente (caso normal: no debería re-emitirse), la condición es
@@ -153,6 +160,32 @@ export async function revocarCertificadoTx(
   await tx
     .update(certificates)
     .set({ revokedAt: new Date(), revokeReason: motivo.trim(), pdfKey: null })
+    .where(eq(certificates.id, cert.id));
+
+  return { pdfKey: cert.pdfKey };
+}
+
+/**
+ * Reembolso de una COMPRA DE CERTIFICADO (no del curso): a diferencia de
+ * `revocarCertificadoTx`, no marca `revokedAt` (el certificado sigue siendo
+ * legítimo, el alumno solo dejó de haberlo pagado) — vuelve a bloquearlo
+ * (`paidAt = null`) para que deba pagarlo de nuevo. No toca R2; el llamador
+ * borra el `pdfKey` devuelto DESPUÉS de que su transacción cierre.
+ */
+export async function bloquearCertificadoPorIdTx(
+  tx: Transaccion,
+  certificateId: string
+): Promise<{ pdfKey: string | null } | null> {
+  const [cert] = await tx
+    .select({ id: certificates.id, pdfKey: certificates.pdfKey, paidAt: certificates.paidAt })
+    .from(certificates)
+    .where(eq(certificates.id, certificateId))
+    .limit(1);
+  if (!cert || !cert.paidAt) return null;
+
+  await tx
+    .update(certificates)
+    .set({ paidAt: null, pdfKey: null })
     .where(eq(certificates.id, cert.id));
 
   return { pdfKey: cert.pdfKey };

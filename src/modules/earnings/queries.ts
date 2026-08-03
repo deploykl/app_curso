@@ -109,6 +109,11 @@ export interface InstructorEarningsTotal {
   disponibleCents: number;
   pagadoCents: number;
   totalCents: number;
+  payoutMethod: "yape" | "plin" | "transferencia" | "interbancario" | null;
+  payoutHolderName: string | null;
+  payoutIdentifier: string | null;
+  payoutBankName: string | null;
+  hasPayoutQr: boolean;
 }
 
 export async function listEarningsByInstructor(): Promise<InstructorEarningsTotal[]> {
@@ -121,11 +126,25 @@ export async function listEarningsByInstructor(): Promise<InstructorEarningsTota
       disponibleCents: sql<number>`coalesce(sum(case when ${disponibleExpr} then ${instructorEarnings.netCents} else 0 end), 0)`,
       pagadoCents: sql<number>`coalesce(sum(case when ${instructorEarnings.status} = 'paid' then ${instructorEarnings.netCents} else 0 end), 0)`,
       totalCents: sql<number>`coalesce(sum(case when ${instructorEarnings.status} <> 'reversed' then ${instructorEarnings.netCents} else 0 end), 0)`,
+      payoutMethod: instructorProfiles.payoutMethod,
+      payoutHolderName: instructorProfiles.payoutHolderName,
+      payoutIdentifier: instructorProfiles.payoutIdentifier,
+      payoutBankName: instructorProfiles.payoutBankName,
+      hasPayoutQr: sql<boolean>`${instructorProfiles.payoutQrImageKey} is not null`,
     })
     .from(instructorEarnings)
     .innerJoin(user, eq(user.id, instructorEarnings.instructorId))
     .leftJoin(instructorProfiles, eq(instructorProfiles.userId, instructorEarnings.instructorId))
-    .groupBy(instructorEarnings.instructorId, user.name, instructorProfiles.commissionRate)
+    .groupBy(
+      instructorEarnings.instructorId,
+      user.name,
+      instructorProfiles.commissionRate,
+      instructorProfiles.payoutMethod,
+      instructorProfiles.payoutHolderName,
+      instructorProfiles.payoutIdentifier,
+      instructorProfiles.payoutBankName,
+      instructorProfiles.payoutQrImageKey
+    )
     .orderBy(user.name);
 
   return rows.map((r) => ({

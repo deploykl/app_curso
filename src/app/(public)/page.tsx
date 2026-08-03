@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { getLandingStats, listPublishedCourses } from "@/modules/catalog/queries";
+import { getLandingStats, getNextLiveSession, listPublishedCourses } from "@/modules/catalog/queries";
 import { STATS_FLOOR } from "@/content/landing";
 import { Hero } from "@/components/landing/hero";
 import { PaymentStrip } from "@/components/landing/payment-strip";
@@ -16,7 +16,11 @@ import { FinalCta } from "@/components/landing/final-cta";
 export const revalidate = 3600;
 
 export default async function LandingPage() {
-  const [cursos, stats] = await Promise.all([listPublishedCourses({}), getLandingStats()]);
+  const [cursos, stats, nextSession] = await Promise.all([
+    listPublishedCourses({}),
+    getLandingStats(),
+    getNextLiveSession(),
+  ]);
   const recientes = cursos.slice(0, 3);
 
   // Solo publicamos una cifra cuando tiene volumen suficiente para decir algo:
@@ -33,7 +37,7 @@ export default async function LandingPage() {
 
   return (
     <>
-      <Hero academiaName={env.ACADEMIA_NAME} highlights={highlights} />
+      <Hero academiaName={env.ACADEMIA_NAME} highlights={highlights} nextSession={nextSession} />
       <PaymentStrip />
       <HowItWorks />
       <FeaturedCourses courses={recientes} />

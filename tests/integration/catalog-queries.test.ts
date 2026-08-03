@@ -36,7 +36,7 @@ beforeEach(async () => {
 
   await db.insert(classSessions).values({
     courseId: pub.id, orderIndex: 0, title: "Clase 1",
-    startsAt: new Date("2026-09-01T15:00:00Z"), durationMinutes: 90,
+    startsAt: new Date("2020-01-01T15:00:00Z"), durationMinutes: 90,
     zoomUrl: "https://zoom.us/j/secreto", recordingUrl: "https://drive.google.com/secreto",
     isFreePreview: true,
   });
